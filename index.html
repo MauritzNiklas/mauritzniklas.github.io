@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Name — PhD Candidate</title>
+  <meta name="description" content="Personal website of [Your Name], PhD candidate in [Field] at [University]." />
+
+  <!-- Fonts: a refined serif for display, a clean sans for body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #fbfaf7;
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --accent: #7d2828;
+      --border: #e8e6e0;
+      --max-width: 1080px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      font-size: 17px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s ease, color 0.2s ease;
+    }
+
+    a:hover { border-bottom-color: var(--accent); }
+
+    /* ---------- Navigation ---------- */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 2rem;
+      position: sticky;
+      top: 0;
+      background: rgba(251, 250, 247, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 10;
+    }
+
+    nav .inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    nav .brand {
+      font-family: 'Newsreader', serif;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--text);
+      border: none;
+    }
+
+    nav ul {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    nav ul a {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 500;
+      border: none;
+    }
+
+    nav ul a:hover { color: var(--accent); }
+
+    /* ---------- Layout ---------- */
+    main {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 4rem 2rem 2rem;
+    }
+
+    section { margin-bottom: 5.5rem; scroll-margin-top: 5rem; }
+
+    h2 {
+      font-size: 1.85rem;
+      margin-bottom: 2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ---------- Hero / About ---------- */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 3rem;
+      align-items: center;
+      margin-bottom: 5rem;
+    }
+
+    .hero h1 {
+      font-size: 3.25rem;
+      line-height: 1.05;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero .role {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      font-style: italic;
+      font-family: 'Newsreader', serif;
+    }
+
+    .hero p {
+      margin-bottom: 1rem;
+      max-width: 60ch;
+    }
+
+    .headshot {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: linear-gradient(135deg, #e6dfd0, #d4cab5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ---------- News ---------- */
+    .news-list { display: flex; flex-direction: column; }
+
+    .news-item {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 2rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .news-item:last-child { border-bottom: none; }
+
+    .news-item .date {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-variant-numeric: tabular-nums;
+      padding-top: 0.15rem;
+    }
+
+    .news-item h3 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      letter-spacing: 0;
+    }
+
+    .news-item p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* ---------- Publications ---------- */
+    .pub {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      gap: 1.75rem;
+      padding: 1.5rem 0;
+      border-bottom: 1px solid var(--border);
+      align-items: start;
+    }
+
+    .pub:last-child { border-bottom: none; }
+
+    .pub .thumb {
+      width: 110px;
+      height: 78px;
+      background: linear-gradient(135deg, #ebe5d8, #cfc4ac);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .pub .title {
+      font-weight: 500;
+      margin-bottom: 0.35rem;
+      display: inline-block;
+      color: var(--text);
+      font-size: 1.02rem;
+      line-height: 1.4;
+    }
+
+    .pub .title:hover { color: var(--accent); }
+
+    .pub .authors {
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .pub .authors .me { color: var(--text); font-weight: 500; }
+
+    .pub .venue {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-family: 'Newsreader', serif;
+    }
+
+    .pub .links {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .pub .links a {
+      margin-right: 1rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .pub .links a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ---------- Footer ---------- */
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: 4rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer .links {
+      display: flex;
+      gap: 1.75rem;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    footer .links a {
+      color: var(--text-muted);
+      border: none;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      font-weight: 500;
+    }
+
+    footer .links a:hover { color: var(--accent); }
+
+    /* ---------- Mobile ---------- */
+    @media (max-width: 720px) {
+      body { font-size: 16px; }
+      .hero { grid-template-columns: 1fr; gap: 2rem; }
+      .hero h1 { font-size: 2.25rem; }
+      .headshot { width: 140px; height: 140px; }
+      .news-item, .pub { grid-template-columns: 1fr; gap: 0.5rem; }
+      .pub .thumb { width: 100%; height: 140px; }
+      nav { padding: 1rem; }
+      nav .inner { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+      nav ul { gap: 1.25rem; flex-wrap: wrap; }
+      main { padding: 2.5rem 1.25rem; }
+      h2 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============== NAV ============== -->
+  <nav>
+    <div class="inner">
+      <a href="#" class="brand">Your Name</a>
+      <ul>
+        <li><a href="#about">About</a></li>
+        <li><a href="#news">News</a></li>
+        <li><a href="#publications">Publications</a></li>
+        <li><a href="cv.pdf">CV</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ============== HERO / ABOUT ============== -->
+    <section id="about" class="hero">
+      <div>
+        <h1>Your Name</h1>
+        <div class="role">PhD Candidate · [Department], [University]</div>
+        <p>
+          I'm a PhD candidate working on [your research area, e.g., "machine learning for
+          climate science" or "computational neuroscience"]. My research focuses on
+          [one sentence about the core question driving your work].
+        </p>
+        <p>
+          Before starting my PhD, I [brief background — degree, previous role, etc.].
+          I'm advised by <a href="#">Prof. Advisor Name</a>, and my work is supported
+          by [funding source, optional].
+        </p>
+        <p>
+          You can find my publications below, or reach me at
+          <a href="mailto:you@university.edu">you@university.edu</a>.
+        </p>
+      </div>
+      <div class="headshot">[Your photo here]</div>
+    </section>
+
+    <!-- ============== NEWS ============== -->
+    <section id="news">
+      <h2>News</h2>
+      <div class="news-list">
+
+        <div class="news-item">
+          <div class="date">Mar 2026</div>
+          <div>
+            <h3>Paper accepted at [Conference]</h3>
+            <p>Our paper on [short topic] was accepted to [Venue]. See you in [city]!</p>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="date">Jan 2026</div>
+          <div>
+            <h3>Started internship at [Lab / Company]</h3>
+            <p>Spending the summer working on [topic] with [collaborators].</p>
+          </div>
+        </div>
+
+        <div class="news-item">
+          <div class="date">Oct 2025</div>
+          <div>
+            <h3>Talk at [Workshop / Seminar]</h3>
+            <p>Presented our work on [topic]. Slides available <a href="#">here</a>.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============== PUBLICATIONS ============== -->
+    <section id="publications">
+      <h2>Selected Publications</h2>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="#" class="title">A Descriptive and Specific Title of Your Paper</a>
+          <div class="authors">
+            <span class="me">Your Name</span>, Coauthor One, Coauthor Two, Senior Advisor
+          </div>
+          <div class="venue">Proceedings of [Conference], 2026</div>
+          <div class="links">
+            <a href="#">PDF</a>
+            <a href="#">Code</a>
+            <a href="#">BibTeX</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="#" class="title">Another Paper Title That Sounds Important</a>
+          <div class="authors">
+            Coauthor One, <span class="me">Your Name</span>, Senior Advisor
+          </div>
+          <div class="venue">Journal of [Field], 2025</div>
+          <div class="links">
+            <a href="#">PDF</a>
+            <a href="#">Project page</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="#" class="title">An Earlier Workshop Paper</a>
+          <div class="authors">
+            <span class="me">Your Name</span>, Senior Advisor
+          </div>
+          <div class="venue">[Workshop] at [Conference], 2024</div>
+          <div class="links">
+            <a href="#">PDF</a>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============== FOOTER ============== -->
+  <footer id="contact">
+    <div class="links">
+      <a href="mailto:you@university.edu">Email</a>
+      <a href="https://scholar.google.com/">Google Scholar</a>
+      <a href="https://github.com/yourusername">GitHub</a>
+      <a href="https://orcid.org/">ORCID</a>
+      <a href="https://www.linkedin.com/in/yourusername/">LinkedIn</a>
+    </div>
+    <div>© 2026 Your Name · Built with HTML &amp; care</div>
+  </footer>
+
+</body>
+</html>
