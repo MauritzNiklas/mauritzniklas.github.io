@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fairness in rankings — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="hyperFA*IR — a hypergeometric framework for fair rankings drawn from finite candidate pools." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="inner">
+      <a href="/" class="brand">Mauritz Cartier van Dissel</a>
+      <ul>
+        <li><a href="/">About</a></li>
+        <li><a href="/research/" class="current">Research</a></li>
+        <li><a href="/#publications">Publications</a></li>
+        <li><a href="/cv.pdf">CV</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <a href="/research/" class="back-link">← All research</a>
+
+    <header class="project-header">
+      <div class="eyebrow">Algorithmic fairness · Statistics</div>
+      <h1>Fairness in rankings</h1>
+      <p class="lede">
+        Rankings shape hiring, admissions, and recommendation systems — but most
+        fairness frameworks ignore that real candidate pools are small and finite,
+        and that selecting one candidate changes the odds for everyone else.
+      </p>
+    </header>
+
+    <div class="project-teaser" style="background: linear-gradient(135deg, #2d4a6b 0%, #7d2828 100%);"></div>
+
+    <div class="meta-block">
+      <div>
+        <div class="label">Collaborators</div>
+        <div>S. Martin-Gutierrez, L. Espín-Noboa, A. M. Jaramillo, F. Karimi</div>
+      </div>
+      <div>
+        <div class="label">Status</div>
+        <div>Preprint released</div>
+      </div>
+      <div>
+        <div class="label">Try it</div>
+        <div><a href="https://vis.csh.ac.at/ranks-of-disparity/">Ranks of Disparity →</a></div>
+      </div>
+    </div>
+
+    <section>
+      <h2>The gap in existing fairness frameworks</h2>
+      <p>
+        When organisations rank candidates for jobs, university places, or loans,
+        a growing literature asks whether the resulting rankings are fair to
+        minority groups. Most existing fairness measures assume independence:
+        each candidate's selection is treated like an independent coin flip with
+        a fixed probability. But selections from real pools are <em>not</em>
+        independent — once a candidate is picked, the composition of the pool
+        changes, and so do the probabilities for everyone else.
+      </p>
+      <p>
+        For small pools or for top-<em>k</em> selections that are large relative
+        to pool size — exactly the cases that matter most in practice — this
+        independence assumption produces misleading fairness assessments.
+      </p>
+    </section>
+
+    <section>
+      <h2>hyperFA*IR</h2>
+      <p>
+        We introduce <strong>hyperFA*IR</strong>, a framework built on the
+        hypergeometric distribution — the natural model for sampling
+        <em>without replacement</em> from a finite pool with known group sizes.
+        The framework lets us:
+      </p>
+      <p>
+        <strong>(i)</strong> evaluate whether an observed ranking is statistically
+        consistent with fair sampling, accounting for the constrained nature of
+        the candidate pool;
+        <strong>(ii)</strong> enforce fairness during ranking generation in a way
+        that is statistically grounded rather than relying on rigid quotas; and
+        <strong>(iii)</strong> reason about uncertainty — distinguishing genuine
+        bias from outcomes that look unfair but are well within the range of
+        random variation.
+      </p>
+    </section>
+
+    <section>
+      <h2>Interactive explainer</h2>
+      <p>
+        Together with the CSH Visuals team we built
+        <a href="https://vis.csh.ac.at/ranks-of-disparity/"><em>Ranks of Disparity</em></a>
+        — an interactive web tool that walks through the intuition for finite-pool
+        fairness and lets users explore bias detection on their own data.
+      </p>
+    </section>
+
+    <section>
+      <h2>Publication</h2>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://arxiv.org/abs/2506.14349" class="title">hyperFA*IR: A hypergeometric approach to fair rankings with finite candidate pool</a>
+          <div class="authors"><span class="me">M. N. Cartier van Dissel</span>, S. Martin-Gutierrez, L. Espín-Noboa, A. M. Jaramillo, F. Karimi</div>
+          <div class="venue">arXiv:2506.14349, 2025</div>
+          <div class="links">
+            <a href="https://arxiv.org/pdf/2506.14349">PDF</a>
+            <a href="https://vis.csh.ac.at/ranks-of-disparity/">Interactive</a>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <section>
+      <h2>Press</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://phys.org/news/2026-04-disparity-approach-flaw-fairness-algorithms.html">phys.org — "New approach fixes flaw in fairness algorithms"</a>
+        </li>
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://www.derstandard.at/story/3000000315614/oesterreichischer-algorithmus-soll-diskriminierung-bei-bewerbungen-vermeiden">Der Standard</a>
+        </li>
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://www.reviewertoo.com/ranking-algorithm-fairness-hyperfair/">Reviewer Too</a>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="links">
+      <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
+      <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
+      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
+    </div>
+    <div>© 2026 Mauritz Cartier van Dissel</div>
+  </footer>
+
+</body>
+</html>

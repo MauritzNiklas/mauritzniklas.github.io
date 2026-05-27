@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intersectional inequalities on networks — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="How belonging to multiple disadvantaged groups compounds barriers in social tie formation." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="inner">
+      <a href="/" class="brand">Mauritz Cartier van Dissel</a>
+      <ul>
+        <li><a href="/">About</a></li>
+        <li><a href="/research/" class="current">Research</a></li>
+        <li><a href="/#publications">Publications</a></li>
+        <li><a href="/cv.pdf">CV</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <a href="/research/" class="back-link">← All research</a>
+
+    <header class="project-header">
+      <div class="eyebrow">Network science · Computational social science</div>
+      <h1>Intersectional inequalities on networks</h1>
+      <p class="lede">
+        Social inequalities don't just add up — they compound. When someone belongs
+        to multiple disadvantaged groups, their barriers to building social ties
+        grow faster than the sum of each disadvantage alone.
+      </p>
+    </header>
+
+    <div class="project-teaser" style="background: linear-gradient(135deg, #7d2828 0%, #b8a98a 100%);"></div>
+
+    <div class="meta-block">
+      <div>
+        <div class="label">Collaborators</div>
+        <div>Samuel Martin-Gutierrez, Fariba Karimi</div>
+      </div>
+      <div>
+        <div class="label">Status</div>
+        <div>Ongoing</div>
+      </div>
+      <div>
+        <div class="label">Group</div>
+        <div>CSH Algorithmic Fairness</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>The question</h2>
+      <p>
+        Most studies of social inequality look at one dimension at a time — gender,
+        ethnicity, class, or age in isolation. But real people inhabit multiple
+        identities simultaneously, and the disadvantages they face are not always
+        well described by adding the effects of each axis independently.
+        We ask: under what conditions does belonging to several minority groups
+        produce <em>more</em> disadvantage than the sum of its parts, and what
+        network-formation mechanisms can explain this?
+      </p>
+    </section>
+
+    <section>
+      <h2>Approach</h2>
+      <p>
+        We model network formation in populations stratified along multiple
+        identity dimensions. Each individual is described by a vector of group
+        memberships, and tie formation depends on a homophily preference that
+        aggregates across these dimensions. We then study how a simple preference
+        aggregation rule — applied at the level of individual choice — produces
+        macroscopic patterns of segregation and compounded inequality at the
+        network level.
+      </p>
+      <p>
+        The framework lets us reason analytically about which population
+        structures and homophily levels lead to intersectional disadvantage,
+        and which interventions could mitigate it.
+      </p>
+    </section>
+
+    <section>
+      <h2>What we found</h2>
+      <p>
+        Across a wide range of plausible parameters, individuals at the
+        intersection of multiple minority groups end up with fewer ties to
+        majority members <em>and</em> fewer ties overall — and crucially, the
+        gap is steeper than a linear combination of each dimension's effect would
+        predict. The CSH news write-up summarised it bluntly:
+        <a href="https://csh.ac.at/news/double-disadvantage-hurts-more-than-twice-as-much/">double disadvantage hurts more than twice as much</a>.
+      </p>
+    </section>
+
+    <section>
+      <h2>Related publications</h2>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://csh.ac.at/publication/a-simple-preference-aggregation-rule-explains-how-multidimensional-identities-shape-social-networks/" class="title">A simple preference aggregation rule explains how multidimensional identities shape social networks</a>
+          <div class="authors">S. Martin-Gutierrez, <span class="me">M. N. Cartier van Dissel</span>, F. Karimi</div>
+          <div class="venue">2026</div>
+        </div>
+      </div>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://csh.ac.at/publication/intersectional-inequalities-in-social-ties/" class="title">Intersectional inequalities in social ties</a>
+          <div class="authors">S. Martin-Gutierrez, <span class="me">M. N. Cartier van Dissel</span>, F. Karimi</div>
+          <div class="venue">2025</div>
+        </div>
+      </div>
+
+    </section>
+
+    <section>
+      <h2>Press</h2>
+      <ul style="list-style: none; padding: 0;">
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://www.infobae.com/tendencias/2026/05/16/la-seleccion-de-amistades-y-parejas-bajo-modelos-matematicos-explica-patrones-de-agrupacion-social-y-persistencia-de-divisiones/">Infobae</a>
+          <span style="color: var(--text-muted); font-size: 0.9rem;">— May 2026</span>
+        </li>
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://www.radioeins.de/programm/sendungen/die_profis/archivierte_sendungen/beitraege/mehrfache-diskriminierung-erschwert-aufbau-sozialer-netzwerke.html">Radio Eins / RBB</a>
+          <span style="color: var(--text-muted); font-size: 0.9rem;">— Nov 2025</span>
+        </li>
+        <li style="margin-bottom: 0.75rem;">
+          <a href="https://science.orf.at/stories/3232792/">ORF Science</a>
+          <span style="color: var(--text-muted); font-size: 0.9rem;">— Nov 2025</span>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="links">
+      <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
+      <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
+      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
+    </div>
+    <div>© 2026 Mauritz Cartier van Dissel</div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>State-space models for electricity forecasting — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="Online prediction of multivariate electricity loads using state-space models — master's thesis work in collaboration with BCAM." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="inner">
+      <a href="/" class="brand">Mauritz Cartier van Dissel</a>
+      <ul>
+        <li><a href="/">About</a></li>
+        <li><a href="/research/" class="current">Research</a></li>
+        <li><a href="/#publications">Publications</a></li>
+        <li><a href="/cv.pdf">CV</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <a href="/research/" class="back-link">← All research</a>
+
+    <header class="project-header">
+      <div class="eyebrow">Time series · State-space models</div>
+      <h1>State-space models for electricity forecasting</h1>
+      <p class="lede">
+        Online prediction of multivariate electricity loads — two state-space
+        models developed during my master's thesis at the Basque Center for
+        Applied Mathematics.
+      </p>
+    </header>
+
+    <div class="project-teaser" style="background: linear-gradient(135deg, #cfc4ac 0%, #2d4a6b 100%);"></div>
+
+    <div class="meta-block">
+      <div>
+        <div class="label">Collaboration</div>
+        <div>Basque Center for Applied Mathematics (BCAM)</div>
+      </div>
+      <div>
+        <div class="label">Status</div>
+        <div>Master's thesis · University of Trento</div>
+      </div>
+      <div>
+        <div class="label">Year</div>
+        <div>2023</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>The problem</h2>
+      <p>
+        Electricity load forecasting matters: grid operators need short-horizon
+        predictions to balance supply and demand in real time, and small
+        improvements in accuracy translate into substantial savings and
+        reliability gains. The forecasting problem is also genuinely multivariate
+        — loads at different points on the grid are correlated, share daily and
+        weekly seasonality, and respond jointly to weather and economic activity.
+        Treating them independently throws away useful information.
+      </p>
+    </section>
+
+    <section>
+      <h2>Approach</h2>
+      <p>
+        For my master's thesis I developed two state-space models for online
+        prediction of multivariate electricity loads. State-space models offer a
+        natural way to combine latent dynamic structure (trend, seasonality,
+        regime) with observation-level coupling between series, and they admit
+        efficient recursive updates — important for the <em>online</em> setting
+        where forecasts must be revised as new measurements arrive.
+      </p>
+      <p>
+        The work was carried out in collaboration with the
+        <a href="https://www.bcamath.org/">Basque Center for Applied Mathematics</a>
+        in Bilbao, and was the bridge between my mathematics training in Trento
+        and my current PhD work on network and complex-systems modelling.
+      </p>
+    </section>
+
+    <section>
+      <h2>Background</h2>
+      <p>
+        I received both my bachelor's and master's degrees in applied mathematics
+        from the <a href="https://www.unitn.it/">University of Trento</a>, Italy.
+        The thesis was the basis on which I joined CSH in April 2023 to pursue
+        my PhD in network science.
+      </p>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="links">
+      <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
+      <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
+      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
+    </div>
+    <div>© 2026 Mauritz Cartier van Dissel</div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Traffic signal road networks — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="A Payne–Whitham model of urban traffic networks with traffic-light dynamics and its application to signal optimisation." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="inner">
+      <a href="/" class="brand">Mauritz Cartier van Dissel</a>
+      <ul>
+        <li><a href="/">About</a></li>
+        <li><a href="/research/" class="current">Research</a></li>
+        <li><a href="/#publications">Publications</a></li>
+        <li><a href="/cv.pdf">CV</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+
+    <a href="/research/" class="back-link">← All research</a>
+
+    <header class="project-header">
+      <div class="eyebrow">PDEs · Optimisation · Networks</div>
+      <h1>Traffic signal road networks</h1>
+      <p class="lede">
+        A continuum model of urban traffic that takes traffic lights seriously —
+        not as boundary conditions to be averaged away, but as discrete dynamic
+        components that shape flow across the entire network.
+      </p>
+    </header>
+
+    <div class="project-teaser" style="background: linear-gradient(135deg, #4a4a4a 0%, #b8a98a 100%);"></div>
+
+    <div class="meta-block">
+      <div>
+        <div class="label">Collaborators</div>
+        <div>P. Gora, D. Manea</div>
+      </div>
+      <div>
+        <div class="label">Status</div>
+        <div>In review</div>
+      </div>
+      <div>
+        <div class="label">Approach</div>
+        <div>Second-order continuum + signal control</div>
+      </div>
+    </div>
+
+    <section>
+      <h2>The setting</h2>
+      <p>
+        Urban traffic is awkward to model. First-order models (LWR-type) miss
+        important phenomena like stop-and-go waves and capacity drops at
+        bottlenecks. Microscopic agent-based simulations capture detail but
+        scale poorly and are hard to optimise analytically. Second-order
+        continuum models like Payne–Whitham occupy an interesting middle ground —
+        but adapting them to <em>networked</em> urban roads with traffic lights
+        introduces real mathematical subtleties at intersections.
+      </p>
+    </section>
+
+    <section>
+      <h2>Approach</h2>
+      <p>
+        We extend the Payne–Whitham framework to urban networks where junctions
+        are governed by traffic lights with controllable phase. Traffic dynamics
+        on each road segment follow a second-order PDE system, while signals
+        impose time-varying boundary conditions that couple adjacent segments.
+        We formulate the resulting optimisation problem — choosing signal phases
+        to minimise total travel time or congestion — and study its structure.
+      </p>
+    </section>
+
+    <section>
+      <h2>Application</h2>
+      <p>
+        Once the model is tractable, signal optimisation becomes a concrete
+        question: given measured demand, which signal timing minimises network
+        congestion? We use the model as the basis for an optimisation pipeline
+        and benchmark it on realistic urban topologies.
+      </p>
+    </section>
+
+    <section>
+      <h2>Publication</h2>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://csh.ac.at/publication/a-payne-whitham-model-of-urban-traffic-networks-in-the-presence-of-traffic-lights-and-its-application-to-traffic-optimisation/" class="title">A Payne–Whitham model of urban traffic networks in the presence of traffic lights and its application to traffic optimisation</a>
+          <div class="authors"><span class="me">M. Cartier van Dissel</span>, P. Gora, D. Manea</div>
+          <div class="venue">In review</div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="links">
+      <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
+      <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
+      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
+    </div>
+    <div>© 2026 Mauritz Cartier van Dissel</div>
+  </footer>
+
+</body>
+</html>
