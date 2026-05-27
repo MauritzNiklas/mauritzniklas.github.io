@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:PATH -split \";\" | Where-Object { $_ -match \"conda|python|mamba\" })",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\Mauritz Dissel\" -Directory -Depth 2 | Where-Object { $_.Name -match \"conda|python|mamba|env\" } | Select-Object FullName)",
+      "PowerShell(& \"C:\\\\Users\\\\Mauritz Dissel\\\\anaconda3\\\\python.exe\" -c \"import pdfplumber; pdf = pdfplumber.open\\(r'C:\\\\Users\\\\Mauritz Dissel\\\\Downloads\\\\view.pdf'\\); print\\(len\\(pdf.pages\\), 'pages'\\); text = chr\\(10\\).join\\(p.extract_text\\(\\) or '' for p in pdf.pages\\); print\\(text[:8000]\\)\" 2>&1)",
+      "WebSearch",
+      "WebFetch(domain:link.springer.com)"
+    ]
+  }
+}

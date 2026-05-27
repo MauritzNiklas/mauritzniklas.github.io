@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Czech schools project — Mauritz Cartier van Dissel</title>
-  <meta name="description" content="Network analysis of Czech school data." />
+  <title>Contact, conflict, or opportunity? — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="Testing contact, conflict, and structural opportunity theories of diversity using friendship and rejection networks in Czech secondary-school classrooms." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,12 +32,12 @@
     <a href="/research/" class="back-link">← All research</a>
 
     <header class="project-header">
-      <div class="eyebrow">Education · Networks</div>
-      <h1>Czech schools project</h1>
+      <div class="eyebrow">Education · Networks · Computational social science</div>
+      <h1>Contact, conflict, or opportunity?</h1>
       <p class="lede">
-        [Lede — one or two sentences summarising the project, e.g. "Analysing
-        friendship networks across Czech secondary schools to study how
-        peer dynamics interact with academic outcomes."]
+        More diverse classrooms create more opportunities for cross-group friendships—but
+        they don't change who students actually want to befriend. Tested across gender,
+        ethnicity, and socio-economic status in nearly 5,000 Czech students.
       </p>
     </header>
 
@@ -46,60 +46,74 @@
     <div class="meta-block">
       <div>
         <div class="label">Collaborators</div>
-        <div>[Names]</div>
+        <div>Tomáš Lintner, Samuel Martin-Gutierrez, Fariba Karimi</div>
       </div>
       <div>
         <div class="label">Status</div>
-        <div>[Ongoing / In review / Published]</div>
+        <div>Preprint (arXiv, May 2026)</div>
       </div>
       <div>
         <div class="label">Data</div>
-        <div>[Source / cohort / years]</div>
+        <div>7 Czech school datasets · ~5,000 students · 228 classrooms</div>
       </div>
     </div>
 
     <section>
       <h2>The question</h2>
       <p>
-        [Two or three sentences: what motivates this project? What's the gap
-        in the literature, or the policy question, that you're addressing?
-        Why Czech schools specifically — what makes the data interesting?]
+        Three leading theories make competing predictions about what happens when
+        people encounter more out-group members. Contact theory holds that exposure
+        reduces prejudice and fosters cross-group ties. Conflict theory predicts the
+        opposite: a growing out-group triggers threat, intensifying in-group preference.
+        Structural opportunity theory argues that observed patterns merely reflect the
+        changing pool of available partners—preferences stay put. We test all three in
+        Czech lower-secondary classrooms, where classroom composition varies substantially
+        across schools and grades, creating a natural quasi-experiment in diversity.
       </p>
     </section>
 
     <section>
       <h2>Approach</h2>
       <p>
-        [Two or three sentences: what methods are you using? Network analysis,
-        regression on tie formation, dynamic models, surveys, longitudinal data,
-        etc. Anything technically distinctive about your approach?]
+        We combine seven independent datasets covering nearly 5,000 students in
+        228 classrooms. Each student provided both friendship <em>and</em> rejection
+        nominations, letting us examine positive and negative ties separately.
+        To disentangle preference from opportunity, we model the nomination process
+        using the Wallenius non-central hypergeometric distribution—an urn model
+        that accounts for the finite, asymmetric pool of available classmates and
+        the depletion of that pool with each successive choice. A multilevel model
+        links each student's estimated preference parameter to classroom composition,
+        yielding posterior model probabilities for each of the three theories across
+        gender, ethnicity, and socio-economic status.
       </p>
     </section>
 
     <section>
-      <h2>Status</h2>
+      <h2>Findings</h2>
       <p>
-        [Current state of the work — what's been done, what's next.
-        Conferences/seminars where you've presented this work, if any.]
+        The results are asymmetric across social dimensions. For ethnicity and
+        socio-economic status, preferences are largely invariant to classroom
+        composition—consistent with structural opportunity theory. For gender,
+        same-gender preference in friendships <em>intensifies</em> as the other-gender
+        share grows, supporting conflict theory: a larger out-group is experienced as
+        threat rather than opportunity. Contact theory finds virtually no support across
+        any dimension or tie type. The practical upshot is that compositional diversity
+        expands the structural opportunity for cross-group contact, but does not, by
+        itself, shift the underlying willingness to form those ties.
       </p>
     </section>
 
-    <!--
-      Once you have publications or preprints for this project, add them
-      using the same .pub structure as the other project pages:
-
-      <section>
-        <h2>Publications</h2>
-        <div class="pub">
-          <div class="thumb"></div>
-          <div>
-            <a href="..." class="title">Title here</a>
-            <div class="authors"><span class="me">M. N. Cartier van Dissel</span>, ...</div>
-            <div class="venue">Venue, year</div>
-          </div>
+    <section>
+      <h2>Preprint</h2>
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://arxiv.org/abs/2505.21490" class="title">Contact, conflict, or opportunity? Out-group exposure creates tie opportunity, not tolerance</a>
+          <div class="authors"><span class="me">M. N. Cartier van Dissel</span>, T. Lintner, S. Martin-Gutierrez, F. Karimi</div>
+          <div class="venue">arXiv preprint, 2026</div>
         </div>
-      </section>
-    -->
+      </div>
+    </section>
 
   </main>
 
