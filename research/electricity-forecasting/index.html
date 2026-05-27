@@ -35,9 +35,10 @@
       <div class="eyebrow">Time series · State-space models</div>
       <h1>State-space models for electricity forecasting</h1>
       <p class="lede">
-        Online prediction of multivariate electricity loads — two state-space
-        models developed during my master's thesis at the Basque Center for
-        Applied Mathematics.
+        Online probabilistic forecasting of multivariate electricity loads —
+        a novel state-space model and a suite of recursive algorithms developed
+        during my master's thesis at the University of Trento, in collaboration
+        with BCAM.
       </p>
     </header>
 
@@ -45,47 +46,64 @@
 
     <div class="meta-block">
       <div>
-        <div class="label">Collaboration</div>
-        <div>Basque Center for Applied Mathematics (BCAM)</div>
+        <div class="label">Supervisors</div>
+        <div>Veronica Vinciotti · Santiago Mazuelas (BCAM)</div>
       </div>
       <div>
         <div class="label">Status</div>
-        <div>Master's thesis · University of Trento</div>
+        <div>Master's thesis · University of Trento, Dec 2022</div>
       </div>
       <div>
-        <div class="label">Year</div>
-        <div>2023</div>
+        <div class="label">Code</div>
+        <div><a href="https://github.com/MauritzNiklas/State-Space-models-for-load-forecasting">GitHub →</a></div>
       </div>
     </div>
 
     <section>
       <h2>The problem</h2>
       <p>
-        Electricity load forecasting matters: grid operators need short-horizon
-        predictions to balance supply and demand in real time, and small
-        improvements in accuracy translate into substantial savings and
-        reliability gains. The forecasting problem is also genuinely multivariate
-        — loads at different points on the grid are correlated, share daily and
-        weekly seasonality, and respond jointly to weather and economic activity.
-        Treating them independently throws away useful information.
+        Electricity is difficult to store, so the quantity generated at any moment
+        must match demand as closely as possible. Grid operators rely on
+        short-term load forecasts — typically one hour to a few days ahead — for
+        unit commitment, economic dispatch, and real-time balancing. The problem
+        is inherently multivariate: loads across different regions and building
+        types are correlated, share daily and weekly seasonality, and respond
+        jointly to weather. Treating them as independent series throws away
+        information that can meaningfully improve accuracy.
       </p>
     </section>
 
     <section>
       <h2>Approach</h2>
       <p>
-        For my master's thesis I developed two state-space models for online
-        prediction of multivariate electricity loads. State-space models offer a
-        natural way to combine latent dynamic structure (trend, seasonality,
-        regime) with observation-level coupling between series, and they admit
-        efficient recursive updates — important for the <em>online</em> setting
-        where forecasts must be revised as new measurements arrive.
+        The thesis develops and compares four recursive forecasting algorithms
+        within a unified state-space framework:
+        <strong>MAPLF</strong> — a novel multivariate probabilistic model
+        generalising Álvarez et al. (2021) to the multivariate Gaussian case,
+        which fuses day-ahead predictions with incoming observations via an
+        inverse emission distribution;
+        the <strong>Kalman Filter</strong> as a classical baseline;
+        the <strong>Inverted State-Space Model</strong>, a third novel method
+        that jointly conditions on previous states and current observations;
+        and <strong>VAR</strong> as an unconditional reference.
+        All parameters are updated recursively with exponential decay, making
+        the models adaptive to non-stationarity without retraining from scratch.
       </p>
       <p>
-        The work was carried out in collaboration with the
-        <a href="https://www.bcamath.org/">Basque Center for Applied Mathematics</a>
-        in Bilbao, and was the bridge between my mathematics training in Trento
-        and my current PhD work on network and complex-systems modelling.
+        Models are evaluated on the <strong>ISO New England</strong> multiregional
+        load dataset — five years of hourly subregional loads with aggregated
+        temperature observations — using point metrics (MAPE, RMSE) and
+        probabilistic metrics (log-score, pinball loss across nine quantiles).
+      </p>
+    </section>
+
+    <section>
+      <h2>Code</h2>
+      <p>
+        The full MATLAB implementation — training, prediction, and evaluation
+        pipelines for all four algorithms — is available on
+        <a href="https://github.com/MauritzNiklas/State-Space-models-for-load-forecasting">GitHub</a>,
+        along with mathematical documentation in a companion Jupyter notebook.
       </p>
     </section>
 
@@ -93,9 +111,11 @@
       <h2>Background</h2>
       <p>
         I received both my bachelor's and master's degrees in applied mathematics
-        from the <a href="https://www.unitn.it/">University of Trento</a>, Italy.
-        The thesis was the basis on which I joined CSH in April 2023 to pursue
-        my PhD in network science.
+        from the <a href="https://www.unitn.it/">University of Trento</a>, Italy,
+        supervised by Veronica Vinciotti and co-supervised by Santiago Mazuelas at
+        the <a href="https://www.bcamath.org/">Basque Center for Applied Mathematics</a>
+        in Bilbao. The thesis was the bridge between my mathematics training and
+        my current PhD work at CSH.
       </p>
     </section>
 
