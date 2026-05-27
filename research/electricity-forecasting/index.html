@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>State-space models for electricity forecasting — Mauritz Cartier van Dissel</title>
+  <title>Multivariate electricity load forecasting — Mauritz Cartier van Dissel</title>
   <meta name="description" content="Online prediction of multivariate electricity loads using state-space models — master's thesis work in collaboration with BCAM." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
 
     <header class="project-header">
       <div class="eyebrow">Time series · State-space models</div>
-      <h1>State-space models for electricity forecasting</h1>
+      <h1>Multivariate electricity load forecasting</h1>
       <p class="lede">
         Online probabilistic forecasting of multivariate electricity loads —
         a novel state-space model and a suite of recursive algorithms developed
@@ -70,6 +70,22 @@
         types are correlated, share daily and weekly seasonality, and respond
         jointly to weather. Treating them as independent series throws away
         information that can meaningfully improve accuracy.
+      </p>
+    </section>
+
+    <section>
+      <h2>Data</h2>
+      <p>
+        The primary dataset is ISO New England's multiregional electricity load
+        record — five years of hourly data across six sub-regions of the New
+        England grid (Maine, New Hampshire, Vermont, Connecticut, Rhode Island,
+        Massachusetts), paired with aggregated temperature observations from
+        regional weather stations. Two years serve as the training period for
+        parameter initialisation; the subsequent three years serve as the
+        prediction period, with all four algorithms updated recursively as new
+        observations arrive. Forecast horizons range from one hour to two weeks
+        ahead, evaluated using point metrics (MAPE, RMSE) and probabilistic
+        metrics (log-score, pinball loss across nine quantiles).
       </p>
     </section>
 
@@ -125,7 +141,8 @@
     <div class="links">
       <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
       <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
-      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://github.com/MauritzNiklas">GitHub</a>
+      <a href="https://networkinequality.com">Network Inequality Lab</a>
       <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
     </div>
     <div>© 2026 Mauritz Cartier van Dissel</div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Intersectional inequalities on networks — Mauritz Cartier van Dissel</title>
+  <title>Intersectional inequalities in social networks — Mauritz Cartier van Dissel</title>
   <meta name="description" content="How belonging to multiple disadvantaged groups compounds barriers in social tie formation." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
 
     <header class="project-header">
       <div class="eyebrow">Network science · Computational social science</div>
-      <h1>Intersectional inequalities on networks</h1>
+      <h1>Intersectional inequalities in social networks</h1>
       <p class="lede">
         Social inequalities don't just add up — they compound. When someone belongs
         to multiple disadvantaged groups, their barriers to building social ties
@@ -58,9 +58,20 @@
         <div>Ongoing</div>
       </div>
       <div>
+        <div class="label">Code</div>
+        <div><a href="https://github.com/CSHVienna/multisoc">GitHub →</a></div>
+      </div>
+      <div>
         <div class="label">Group</div>
         <div>CSH Algorithmic Fairness</div>
       </div>
+    </div>
+
+    <div style="margin: 2rem 0;">
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; font-family: 'IBM Plex Sans', sans-serif;">A summary for German speakers — Radio Eins, Berlin, Nov 2025</p>
+      <audio controls style="width: 100%;">
+        <source src="https://rbbmediapmdp-a.akamaihd.net/content/53/56/5356765a-cc39-4d37-8d50-d38ac8325db1/85eb55d2-0fde-48e8-82b8-d8eb0650488a_1e5bc08b-ee80-4cd1-aaf6-74c63693b410_256k.mp3" type="audio/mpeg">
+      </audio>
     </div>
 
     <section>
@@ -73,6 +84,30 @@
         We ask: under what conditions does belonging to several minority groups
         produce <em>more</em> disadvantage than the sum of its parts, and what
         network-formation mechanisms can explain this?
+      </p>
+    </section>
+
+    <section>
+      <h2>Data</h2>
+      <p>
+        Both papers combine analytical results on synthetic networks with
+        large-scale empirical validation. Synthetic networks span a wide range
+        of group sizes, homophily levels, and population structures, allowing
+        controlled exploration of when intersectional disadvantage emerges.
+      </p>
+      <p>
+        Empirical validation draws on two sources. The
+        <a href="https://www.science.org/doi/10.1126/sciadv.adu9025">Science Advances</a>
+        paper calibrates the model against US high-school friendship networks
+        from the AddHealth study (National Longitudinal Study of Adolescent to
+        Adult Health), finding that closed-form predictions of degree inequality
+        align remarkably well with observed patterns. The
+        <a href="https://www.nature.com/articles/s42005-026-02537-3">Communications Physics</a>
+        paper (introducing the MAPS framework) uses two systems: 70 AddHealth
+        school friendship networks covering 41,880 students with grade,
+        ethnicity, and gender attributes; and marriage data from the IPUMS USA
+        database for the 50 most populous US cities, drawn from the 2013–2017
+        and 2017–2021 American Community Survey 5-year pooled samples.
       </p>
     </section>
 
@@ -112,18 +147,26 @@
       <div class="pub">
         <div class="thumb"></div>
         <div>
-          <a href="https://csh.ac.at/publication/a-simple-preference-aggregation-rule-explains-how-multidimensional-identities-shape-social-networks/" class="title">A simple preference aggregation rule explains how multidimensional identities shape social networks</a>
+          <a href="https://www.nature.com/articles/s42005-026-02537-3" class="title">A simple preference aggregation rule explains how multidimensional identities shape social networks</a>
           <div class="authors">S. Martin-Gutierrez, <span class="me">M. N. Cartier van Dissel</span>, F. Karimi</div>
-          <div class="venue">2026</div>
+          <div class="venue">Communications Physics, 2026</div>
+          <div class="links">
+            <a href="https://www.nature.com/articles/s42005-026-02537-3">Nature</a>
+            <a href="https://github.com/CSHVienna/multisoc">Code</a>
+          </div>
         </div>
       </div>
 
       <div class="pub">
         <div class="thumb"></div>
         <div>
-          <a href="https://csh.ac.at/publication/intersectional-inequalities-in-social-ties/" class="title">Intersectional inequalities in social ties</a>
+          <a href="https://www.science.org/doi/10.1126/sciadv.adu9025" class="title">Intersectional inequalities in social ties</a>
           <div class="authors">S. Martin-Gutierrez, <span class="me">M. N. Cartier van Dissel</span>, F. Karimi</div>
-          <div class="venue">2025</div>
+          <div class="venue">Science Advances, 2025</div>
+          <div class="links">
+            <a href="https://www.science.org/doi/10.1126/sciadv.adu9025">Science Advances</a>
+            <a href="https://github.com/CSHVienna/multisoc">Code</a>
+          </div>
         </div>
       </div>
 
@@ -153,7 +196,8 @@
     <div class="links">
       <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
       <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
-      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://github.com/MauritzNiklas">GitHub</a>
+      <a href="https://networkinequality.com">Network Inequality Lab</a>
       <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
     </div>
     <div>© 2026 Mauritz Cartier van Dissel</div>

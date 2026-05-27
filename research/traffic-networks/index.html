@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Traffic signal road networks — Mauritz Cartier van Dissel</title>
+  <title>Urban traffic networks and signal optimisation — Mauritz Cartier van Dissel</title>
   <meta name="description" content="A Payne–Whitham model of urban traffic networks with traffic-light dynamics and its application to signal optimisation." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +33,7 @@
 
     <header class="project-header">
       <div class="eyebrow">PDEs · Optimisation · Networks</div>
-      <h1>Traffic signal road networks</h1>
+      <h1>Urban traffic networks and signal optimisation</h1>
       <p class="lede">
         A continuum model of urban traffic that takes traffic lights seriously —
         not as boundary conditions to be averaged away, but as discrete dynamic
@@ -77,6 +77,23 @@
     </section>
 
     <section>
+      <h2>Data</h2>
+      <p>
+        The model is calibrated and applied to the Stara Ochota district of
+        Warsaw, Poland — a central urban area with 21 signalised intersections.
+        Road network topology and traffic-light locations were extracted from
+        OpenStreetMap; driver turning fractions at each junction were estimated
+        using the Traffic Simulation Framework. Fundamental diagram parameters
+        (free-flow speed, critical density, speed-decay exponent) were
+        calibrated against 5-minute traffic counter measurements from Ljubljana,
+        Slovenia, provided by the Faculty of Civil and Geodetic Engineering at
+        the University of Ljubljana. Model initial conditions — segment-level
+        free-flow and average speeds — were sourced from TomTom's Flow Segment
+        Data API.
+      </p>
+    </section>
+
+    <section>
       <h2>Approach</h2>
       <p>
         We extend the Payne–Whitham framework to urban networks where junctions
@@ -99,18 +116,31 @@
     </section>
 
     <section>
-      <h2>Publication</h2>
+      <h2>Publications</h2>
 
       <div class="pub">
         <div class="thumb"></div>
         <div>
           <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_9" class="title">A Payne–Whitham model of urban traffic networks in the presence of traffic lights and its application to traffic optimisation</a>
           <div class="authors"><span class="me">M. Cartier van Dissel</span>, P. Gora, D. Manea</div>
-          <div class="venue">Trends in Mathematics, Springer — Final Conference on Mathematical Models for Interacting Dynamics on Networks</div>
+          <div class="venue">Trends in Mathematics, Springer — Final Conference on Mathematical Models for Interacting Dynamics on Networks, 2024</div>
           <div class="links">
             <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_9">Springer</a>
             <a href="https://arxiv.org/abs/2401.04436">arXiv</a>
             <a href="https://arxiv.org/pdf/2401.04436">PDF</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="pub">
+        <div class="thumb"></div>
+        <div>
+          <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_8" class="title">Journey Through the World of Dynamical Systems on Networks</a>
+          <div class="authors">A. Puchalska, <span class="me">M. N. Cartier van Dissel</span>, et al.</div>
+          <div class="venue">Appeared in the same volume as the paper above — Trends in Mathematics, Springer, 2024</div>
+          <div class="links">
+            <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_8">Springer</a>
+            <a href="https://arxiv.org/abs/2512.17571">arXiv</a>
           </div>
         </div>
       </div>
@@ -123,7 +153,8 @@
     <div class="links">
       <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
       <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
-      <a href="https://twitter.com/MauritzCVD">Twitter</a>
+      <a href="https://github.com/MauritzNiklas">GitHub</a>
+      <a href="https://networkinequality.com">Network Inequality Lab</a>
       <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
     </div>
     <div>© 2026 Mauritz Cartier van Dissel</div>
