@@ -106,12 +106,38 @@
     </section>
 
     <section>
-      <h2>Application</h2>
+      <h2>Results</h2>
       <p>
-        Once the model is tractable, signal optimisation becomes a concrete
-        question: given measured demand, which signal timing minimises network
-        congestion? We use the model as the basis for an optimisation pipeline
-        and benchmark it on realistic urban topologies.
+        The PW network model captures phenomena that first-order LWR models cannot
+        represent: stop-and-go wave formation at bottlenecks and queue build-up
+        upstream of red lights. Both are consequences of the second-order pressure
+        term and emerge naturally from the calibrated model without hand-tuning.
+      </p>
+      <p>
+        Applied to the Stara Ochota district of Warsaw (21 signalised intersections),
+        the optimised signal timing achieves a <strong>34% improvement in average
+        traffic speed</strong> and a <strong>24% reduction in queue length</strong>
+        compared to fixed-cycle baseline timing, under the calibrated demand scenario.
+        The key mathematical contribution enabling this is a tractable gradient
+        structure for the PW network PDE with signal-coupled boundary conditions,
+        which makes the optimisation amenable to standard gradient-based methods
+        rather than requiring exhaustive search.
+      </p>
+    </section>
+
+    <section>
+      <h2>What this means</h2>
+      <p>
+        Second-order continuum models are underused in signal optimisation. The
+        mathematical difficulty of coupling a PDE system to discrete signal dynamics
+        has kept the literature on simpler first-order models or agent-based simulations.
+        This work shows that the coupling can be formulated tractably, and that the
+        resulting optimiser produces meaningful improvements on a realistic urban district.
+      </p>
+      <p>
+        The pipeline uses only publicly available data sources — OpenStreetMap topology,
+        TomTom flow data, and traffic counter measurements — making it straightforward
+        to adapt to other cities.
       </p>
     </section>
 
@@ -122,12 +148,13 @@
         <div class="thumb"></div>
         <div>
           <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_9" class="title">A Payne–Whitham model of urban traffic networks in the presence of traffic lights and its application to traffic optimisation</a>
-          <div class="authors"><span class="me">M. Cartier van Dissel</span>, P. Gora, D. Manea</div>
+          <div class="authors"><span class="me">M. N. Cartier van Dissel</span>, P. Gora, D. Manea</div>
           <div class="venue">Trends in Mathematics, Springer — Final Conference on Mathematical Models for Interacting Dynamics on Networks, 2024</div>
           <div class="links">
             <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_9">Springer</a>
             <a href="https://arxiv.org/abs/2401.04436">arXiv</a>
             <a href="https://arxiv.org/pdf/2401.04436">PDF</a>
+            <a href="https://www.youtube.com/watch?v=SikmQ08hCIs&t=288s">Video</a>
           </div>
         </div>
       </div>
@@ -137,10 +164,11 @@
         <div>
           <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_8" class="title">Journey Through the World of Dynamical Systems on Networks</a>
           <div class="authors">A. Puchalska, <span class="me">M. N. Cartier van Dissel</span>, et al.</div>
-          <div class="venue">Appeared in the same volume as the paper above — Trends in Mathematics, Springer, 2024</div>
+          <div class="venue">Trends in Mathematics, Springer — Final Conference on Mathematical Models for Interacting Dynamics on Networks, 2024</div>
           <div class="links">
             <a href="https://link.springer.com/chapter/10.1007/978-3-032-02326-1_8">Springer</a>
             <a href="https://arxiv.org/abs/2512.17571">arXiv</a>
+            <a href="https://arxiv.org/pdf/2512.17571">PDF</a>
           </div>
         </div>
       </div>

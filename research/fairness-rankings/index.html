@@ -86,6 +86,38 @@
     </section>
 
     <section>
+      <h2>Binomial and hyper... what?</h2>
+      <p>
+        Think of the Russian roulette scene in Squid Game. In standard Russian
+        roulette, the cylinder is spun before every pull — so the probability of
+        a bullet is always 1-in-6, regardless of what happened before. Each round
+        is independent, with a fixed probability. That is the <em>binomial</em> world.
+      </p>
+      <p>
+        Now imagine no reshuffling. If the first player survives, the bullet is
+        still in one of the remaining five chambers — the next player's odds jump
+        to 1-in-5, then 1-in-4, until someone is guaranteed to be shot. Past draws
+        change the future odds because you are sampling from a <em>shrinking</em> pool.
+        That is the <em>hypergeometric</em> world: sampling without replacement.
+      </p>
+      <p>
+        Candidate pools work the same way. Once you select someone, the pool shrinks
+        and the probabilities shift for everyone who remains. When the protected group
+        is small — or when you are selecting a large share of the pool — treating each
+        selection as independent gives you the wrong baseline. It can make a fair ranking
+        look biased, or hide real bias behind the arithmetic of depletion.
+        The hypergeometric distribution is the correct null model.
+      </p>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1.5rem; margin-bottom: 0.5rem;">The scene that inspired the analogy — Squid Game, season 2</p>
+      <div style="position: relative; aspect-ratio: 16/9;">
+        <iframe style="position: absolute; inset: 0; width: 100%; height: 100%;"
+          src="https://www.youtube.com/embed/hPMyxMyJr-0"
+          frameborder="0" allowfullscreen loading="lazy">
+        </iframe>
+      </div>
+    </section>
+
+    <section>
       <h2>Data</h2>
       <p>
         The framework is evaluated on synthetic ranking scenarios and a
@@ -128,13 +160,49 @@
     </section>
 
     <section>
-      <h2>Interactive explainer</h2>
+      <h2>Findings</h2>
       <p>
-        Together with the CSH Visuals team we built
-        <a href="https://vis.csh.ac.at/ranks-of-disparity/"><em>Ranks of Disparity</em></a>
-        — an interactive web tool that walks through the intuition for finite-pool
-        fairness and lets users explore bias detection on their own data.
+        The hypergeometric correction changes conclusions most in two regimes: when the
+        protected group is small relative to the total pool, and when a large fraction
+        of the pool is selected (large top-<em>k</em>). In both cases the binomial
+        model's independence assumption is furthest from reality.
       </p>
+      <p>
+        The empirical case study — a Latin American university that expanded low-income
+        enrolment via a government scholarship programme — illustrates both failure
+        modes. Under the binomial model, gender and socioeconomic disparities in certain
+        GPA-based rankings appeared either more or less statistically significant than
+        under the hypergeometric model, with the direction depending on pool composition.
+        Some apparent disparities disappear; some hidden ones surface.
+      </p>
+      <p>
+        Beyond auditing, hyperFA*IR enables <em>fair generation</em>: producing rankings
+        that satisfy statistical fairness constraints while accounting for pool depletion,
+        without imposing rigid numerical quotas.
+      </p>
+    </section>
+
+    <section class="tool-panel">
+      <div class="tool-panel-inner">
+        <div class="tool-panel-text">
+          <h2>Try it yourself</h2>
+          <p>
+            Together with <a href="https://diegoabt.github.io/">Diego Baptista Theuerkauf</a> and <a href="https://spark.go4trees.com">Liuhuaying Yang</a> (thank you both!) we built <strong>Ranks of Disparity</strong>
+            — an interactive tool that walks through the intuition for finite-pool fairness
+            and lets you run the hyperFA*IR test on your own ranking data. Upload your
+            numbers and see immediately whether your ranking is statistically consistent
+            with fair sampling — and by how much it falls inside or outside the
+            hypergeometric confidence corridor.
+          </p>
+          <a href="https://vis.csh.ac.at/ranks-of-disparity/" class="tool-cta">Open Ranks of Disparity →</a>
+        </div>
+        <a href="https://vis.csh.ac.at/ranks-of-disparity/" class="tool-panel-preview" aria-label="Open Ranks of Disparity">
+          <img src="/research/fairness-rankings/ranks-of-disparity-preview.png"
+               alt="Ranks of Disparity — candidate cards ranked by score with a fairness corridor chart below"
+               style="width:100%;display:block;"
+               onerror="this.style.display='none'">
+        </a>
+      </div>
     </section>
 
     <section>
