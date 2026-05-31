@@ -32,8 +32,10 @@
   /* ----------------------------------------------------------
      1. Czech schools — classroom seating with animated ties
         Students sit in a 7×3 grid; a blackboard sits at top.
-        Friendship edges pulse between classmates — within-group
-        ties appear more frequently (homophily).
+        Desks are drawn ABOVE each node (between student and board).
+        Edges use a lifecycle: dormant → forming (grows from A to B)
+        → active → dissolving → dormant. Same-group ties form
+        frequently and stay long; cross-group ties are rare & brief.
      ---------------------------------------------------------- */
   function initCzechSchools() {
     const r = initCanvas('anim-czech-schools');
@@ -44,10 +46,10 @@
     const BOARD_H  = Math.round(H * 0.22);
     const ROWS = 3, COLS = 7;
     const SEAT_Y0  = BOARD_H + 9;
-    const CW = (W - 2 * PAD) / COLS;   // cell width
-    const CH = (H - SEAT_Y0 - PAD) / ROWS; // cell height
-    const NR = Math.min(CW, CH) * 0.23;    // node radius
-    const DESK_W = CW * 0.50, DESK_H = CH * 0.16;
+    const CW = (W - 2 * PAD) / COLS;
+    const CH = (H - SEAT_Y0 - PAD) / ROWS;
+    const NR = Math.min(CW, CH) * 0.23;
+    const DESK_W = CW * 0.52, DESK_H = CH * 0.16;
 
     // Assign groups (~45% / 55%), then shuffle seats
     const N = ROWS * COLS;
@@ -58,12 +60,12 @@
     }
     const students = grps.map((group, idx) => ({
       x: PAD + ((idx % COLS) + 0.5) * CW,
-      y: SEAT_Y0 + (Math.floor(idx / COLS) + 0.38) * CH,
+      y: SEAT_Y0 + (Math.floor(idx / COLS) + 0.55) * CH,
       group,
       phase: Math.random() * Math.PI * 2,
     }));
 
-    // Edges: pairs within 2.6 cells; animated alpha oscillates
+    // Edges with lifecycle: dormant → forming → active → dissolving → dormant
     const MAX_D = Math.sqrt((CW * 2.6) ** 2 + (CH * 1.4) ** 2);
     const edges = [];
     for (let i = 0; i < N; i++) {
@@ -71,120 +73,168 @@
         const a = students[i], b = students[j];
         const d = Math.hypot(b.x - a.x, b.y - a.y);
         if (d > MAX_D) continue;
-        const sameGroup = a.group === b.group;
+        const sg = a.group === b.group;
+        // Stagger initial states so the scene isn't empty at start
+        const rand = Math.random();
+        const initState = sg
+          ? (rand < 0.30 ? 'active' : rand < 0.55 ? 'forming' : 'dormant')
+          : (rand < 0.06 ? 'active' : 'dormant');
         edges.push({
-          i, j, sameGroup,
-          phase: Math.random() * Math.PI * 2,
-          speed: 0.006 + Math.random() * 0.004,
-          // same-group: oscillates around 0.45 with amp 0.20 → always visible
-          // cross-group: oscillates around 0.02 with amp 0.10 → briefly visible
-          mean: sameGroup ? 0.42 : 0.025,
-          amp:  sameGroup ? 0.20 : 0.090,
+          i, j, sg,
+          state:       initState,
+          progress:    initState === 'active' ? 1 : (initState === 'forming' ? Math.random() * 0.5 : 0),
+          timer:       Math.floor(Math.random() * (sg ? 90 : 250)) + (sg ? 30 : 120),
+          alpha:       initState === 'active' ? (sg ? 0.52 : 0.18) : 0,
+          maxAlpha:    sg ? 0.52 : 0.18,
+          formSpeed:   sg ? 0.005 : 0.003,
+          dissolveSpd: sg ? 0.004 : 0.005,
+          dormantLen:  () => Math.floor(Math.random() * (sg ? 250 : 700)) + (sg ? 100 : 400),
+          activeLen:   () => Math.floor(Math.random() * (sg ? 400 : 150)) + (sg ? 200 : 80),
         });
       }
     }
 
-    // Blackboard mini-network geometry (scaled to board area)
-    const BX  = PAD + 16;             // left edge of mini network
-    const BY  = BOARD_H * 0.50;       // vertical center on board
-    const CR  = BOARD_H * 0.21;       // cluster radius
-
-    // Three Group-A nodes in a triangle, two Group-B nodes
-    const MINI_A = [
-      [BX,           BY - CR * 0.65],
-      [BX - CR * 0.7, BY + CR * 0.42],
-      [BX + CR * 0.7, BY + CR * 0.42],
+    // Chalk network drawn on the blackboard (animates once at load)
+    const BW = W - 2 * PAD;
+    const BH = BOARD_H - 8;
+    const CHALK_NODES = [
+      { x: PAD + BW * 0.04, y: 4 + BH * 0.25 },  // A0
+      { x: PAD + BW * 0.02, y: 4 + BH * 0.75 },  // A1
+      { x: PAD + BW * 0.11, y: 4 + BH * 0.78 },  // A2
+      { x: PAD + BW * 0.22, y: 4 + BH * 0.22 },  // B0
+      { x: PAD + BW * 0.20, y: 4 + BH * 0.78 },  // B1
+      { x: PAD + BW * 0.29, y: 4 + BH * 0.50 },  // B2
     ];
-    const MINI_B = [
-      [BX + CR * 2.7, BY - CR * 0.48],
-      [BX + CR * 2.7, BY + CR * 0.48],
+    const CHALK_EDGES = [
+      { a: 0, b: 1, cross: false, s: 225, e: 354 },
+      { a: 0, b: 2, cross: false, s: 300, e: 420 },
+      { a: 1, b: 2, cross: false, s: 366, e: 480 },
+      { a: 3, b: 4, cross: false, s: 276, e: 396 },
+      { a: 4, b: 5, cross: false, s: 354, e: 474 },
+      { a: 3, b: 5, cross: false, s: 426, e: 540 },
+      { a: 2, b: 3, cross: true,  s: 585, e: 696 },
     ];
+    const NODE_START = [15, 60, 105, 156, 201, 246];
+    const NODE_DUR   = 66;
+    const CHALK_DONE = 720;
+    const NR_CHALK   = Math.max(2.2, BOARD_H * 0.085);
 
     let tick = 0;
+    let chalkTick = 0;
 
     function drawBlackboard() {
       // Board fill
       ctx.fillStyle = '#1b2e1b';
       ctx.fillRect(PAD, 4, W - 2 * PAD, BOARD_H - 4);
-      ctx.strokeStyle = 'rgba(200,195,175,0.20)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(PAD, 4, W - 2 * PAD, BOARD_H - 4);
+
+      // Wooden frame
+      ctx.strokeStyle = 'rgba(130,90,48,0.65)';
+      ctx.lineWidth = 3.5;
+      ctx.strokeRect(PAD - 1, 3, W - 2 * PAD + 2, BOARD_H - 2);
 
       const chalk = a => `rgba(215,208,188,${a})`;
+      const ct = chalkTick;
 
-      // Dense intra-A edges
-      ctx.strokeStyle = chalk(0.52);
-      ctx.lineWidth = 0.9;
-      for (let i = 0; i < MINI_A.length; i++)
-        for (let j = i + 1; j < MINI_A.length; j++) {
-          ctx.beginPath();
-          ctx.moveTo(MINI_A[i][0], MINI_A[i][1]);
-          ctx.lineTo(MINI_A[j][0], MINI_A[j][1]);
-          ctx.stroke();
-        }
-      // Intra-B edge
-      ctx.beginPath();
-      ctx.moveTo(MINI_B[0][0], MINI_B[0][1]);
-      ctx.lineTo(MINI_B[1][0], MINI_B[1][1]);
-      ctx.stroke();
-
-      // Faint cross-group edge
-      ctx.strokeStyle = chalk(0.16);
-      ctx.setLineDash([2, 3]);
-      ctx.beginPath();
-      ctx.moveTo(MINI_A[0][0] + CR * 0.5, MINI_A[0][1] + 2);
-      ctx.lineTo(MINI_B[0][0] - 2, MINI_B[0][1]);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Nodes
-      MINI_A.concat(MINI_B).forEach(([x, y]) => {
-        ctx.fillStyle = chalk(0.60);
+      // Chalk edges (grow from node a toward node b)
+      for (const ed of CHALK_EDGES) {
+        const p = Math.max(0, Math.min(1, (ct - ed.s) / (ed.e - ed.s)));
+        if (p <= 0) continue;
+        const na = CHALK_NODES[ed.a], nb = CHALK_NODES[ed.b];
+        const alphaA = Math.max(0, Math.min(1, (ct - NODE_START[ed.a]) / NODE_DUR));
+        const alphaB = Math.max(0, Math.min(1, (ct - NODE_START[ed.b]) / NODE_DUR));
+        const baseA  = Math.min(alphaA, alphaB) * p;
+        if (baseA < 0.01) continue;
+        ctx.strokeStyle = chalk(baseA * (ed.cross ? 0.22 : 0.50));
+        ctx.lineWidth = ed.cross ? 0.7 : 1.0;
+        if (ed.cross) ctx.setLineDash([2, 3]);
         ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
+        ctx.moveTo(na.x, na.y);
+        ctx.lineTo(na.x + (nb.x - na.x) * p, na.y + (nb.y - na.y) * p);
+        ctx.stroke();
+        if (ed.cross) ctx.setLineDash([]);
+      }
 
-      // "contact?" label
-      ctx.fillStyle = chalk(0.38);
-      ctx.font = `italic ${Math.max(7, Math.round(BOARD_H * 0.27))}px serif`;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Are school segregated?', W - PAD - 8, BOARD_H * 0.50);
+      // Chalk nodes (fade in)
+      for (let i = 0; i < CHALK_NODES.length; i++) {
+        const p = Math.max(0, Math.min(1, (ct - NODE_START[i]) / NODE_DUR));
+        if (p <= 0) continue;
+        ctx.fillStyle = chalk(p * 0.68);
+        ctx.beginPath();
+        ctx.arc(CHALK_NODES[i].x, CHALK_NODES[i].y, NR_CHALK, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Question text fades in after drawing is mostly done
+      const textA = Math.max(0, Math.min(1, (ct - 615) / 80));
+      if (textA > 0) {
+        ctx.fillStyle = chalk(0.40 * textA);
+        ctx.font = `italic ${Math.max(8, Math.round(BOARD_H * 0.34))}px serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Who befriends whom?', W - PAD - 8, BOARD_H * 0.50);
+      }
+    }
+
+    function updateEdges() {
+      for (const e of edges) {
+        if (e.state === 'dormant') {
+          if (--e.timer <= 0) { e.state = 'forming'; e.progress = 0; }
+
+        } else if (e.state === 'forming') {
+          e.progress = Math.min(1, e.progress + e.formSpeed);
+          e.alpha = e.progress * e.maxAlpha;
+          if (e.progress >= 1) { e.state = 'active'; e.timer = e.activeLen(); }
+
+        } else if (e.state === 'active') {
+          e.alpha = e.maxAlpha;
+          if (--e.timer <= 0) { e.state = 'dissolving'; }
+
+        } else if (e.state === 'dissolving') {
+          e.progress = Math.max(0, e.progress - e.dissolveSpd);
+          e.alpha = e.progress * e.maxAlpha;
+          if (e.progress <= 0) { e.state = 'dormant'; e.timer = e.dormantLen(); }
+        }
+      }
     }
 
     function step() {
       tick++;
+      if (chalkTick < CHALK_DONE) chalkTick++;
+      updateEdges();
       ctx.clearRect(0, 0, W, H);
 
       drawBlackboard();
 
-      // Desk surfaces
+      // Desk surfaces: drawn ABOVE the student node (toward the blackboard)
       for (let row = 0; row < ROWS; row++) {
         for (let col = 0; col < COLS; col++) {
           const cx = PAD + (col + 0.5) * CW;
-          const cy = SEAT_Y0 + (row + 0.38) * CH;
-          ctx.fillStyle = 'rgba(165,140,110,0.28)';
-          ctx.fillRect(cx - DESK_W / 2, cy + NR + 2, DESK_W, DESK_H);
+          const cy = SEAT_Y0 + (row + 0.55) * CH;
+          ctx.fillStyle = 'rgba(165,140,110,0.30)';
+          ctx.fillRect(cx - DESK_W / 2, cy - NR - 2 - DESK_H, DESK_W, DESK_H);
         }
       }
 
-      // Friendship edges
+      // Friendship edges: draw as growing/shrinking line from node i toward node j
       for (const e of edges) {
+        if (e.state === 'dormant' || e.alpha < 0.008) continue;
         const a = students[e.i], b = students[e.j];
-        const alpha = e.mean + e.amp * Math.sin(tick * e.speed + e.phase);
-        if (alpha < 0.02) continue;
-        ctx.lineWidth = e.sameGroup ? 1.1 : 0.6;
-        ctx.strokeStyle = e.sameGroup
-          ? (students[e.i].group === 0
-              ? `rgba(125,40,40,${alpha})`
-              : `rgba(45,74,107,${alpha})`)
-          : `rgba(80,80,80,${alpha * 0.6})`;
         const bobA = Math.sin(tick * 0.025 + a.phase) * 0.5;
         const bobB = Math.sin(tick * 0.025 + b.phase) * 0.5;
+        const ax = a.x, ay = a.y + bobA;
+        const bx = b.x, by = b.y + bobB;
+        // Line grows from a toward b during forming, shrinks back during dissolving
+        const endX = ax + (bx - ax) * e.progress;
+        const endY = ay + (by - ay) * e.progress;
+        ctx.lineWidth = e.sg ? 1.1 : 0.65;
+        ctx.strokeStyle = e.sg
+          ? (students[e.i].group === 0
+              ? `rgba(125,40,40,${e.alpha})`
+              : `rgba(45,74,107,${e.alpha})`)
+          : `rgba(80,80,80,${e.alpha})`;
         ctx.beginPath();
-        ctx.moveTo(a.x, a.y + bobA);
-        ctx.lineTo(b.x, b.y + bobB);
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(endX, endY);
         ctx.stroke();
       }
 
