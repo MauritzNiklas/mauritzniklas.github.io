@@ -81,32 +81,24 @@
       <p>
         For small pools or for top-<em>k</em> selections that are large relative
         to pool size — exactly the cases that matter most in practice — this
-        independence assumption produces misleading fairness assessments.
+        independence assumption produces misleading fairness assessments. 
+        This is why we replace the binomial distribution used in past methods
+        with a hypergeometric model that accounts for the finite pool 
+        and the changing probabilities as candidates are selected.
       </p>
     </section>
 
     <section>
       <h2>Binomial and hyper... what?</h2>
       <p>
-        Think of the Russian roulette scene in Squid Game. In standard Russian
+        A simple silly analogy helps illustrate the difference. In standard Russian
         roulette, the cylinder is spun before every pull — so the probability of
         a bullet is always 1-in-6, regardless of what happened before. Each round
         is independent, with a fixed probability. That is the <em>binomial</em> world.
       </p>
       <p>
-        Now imagine no reshuffling. If the first player survives, the bullet is
-        still in one of the remaining five chambers — the next player's odds jump
-        to 1-in-5, then 1-in-4, until someone is guaranteed to be shot. Past draws
-        change the future odds because you are sampling from a <em>shrinking</em> pool.
-        That is the <em>hypergeometric</em> world: sampling without replacement.
-      </p>
-      <p>
-        Candidate pools work the same way. Once you select someone, the pool shrinks
-        and the probabilities shift for everyone who remains. When the protected group
-        is small — or when you are selecting a large share of the pool — treating each
-        selection as independent gives you the wrong baseline. It can make a fair ranking
-        look biased, or hide real bias behind the arithmetic of depletion.
-        The hypergeometric distribution is the correct null model.
+        Now what if the cylinder is only spun once at the start, and then you pull the trigger
+        repeatedly until you get a bullet? 
       </p>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 1.5rem; margin-bottom: 0.5rem;">The scene that inspired the analogy — Squid Game, season 2</p>
       <div style="position: relative; aspect-ratio: 16/9;">
