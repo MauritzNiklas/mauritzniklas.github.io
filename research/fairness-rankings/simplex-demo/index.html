@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sequential Bayesian updating on the simplex — Mauritz Cartier van Dissel</title>
+  <meta name="description" content="An interactive demo of Bayesian inference for ranking fairness: choose the true group weights, sample a ranking, and watch the posterior concentrate draw by draw." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+  /* ============================================================
+     Interactive simplex demo — layered on top of the shared
+     stylesheet. Only the demo's own components are styled here;
+     nav, headings, links and footer come from /style.css.
+     ============================================================ */
+  .demo {
+    --g0: #2d4a6b;  --g1: #8a6a1c;  --g2: #3f6b52;
+    --truth: #7d2828;
+    --surface: #ffffff;
+    --sand: #f3ede2;
+    --evid: var(--accent-2);
+    --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+    /* Aliases for the names the ported script still writes into inline SVG and canvas
+       attributes. Cheaper and safer than rewriting those call sites. */
+    --grpA: var(--g0);  --grpB: var(--g1);  --grpC: var(--g2);
+    --alarm: var(--truth);
+    --panel: var(--surface);
+    --ink-3: var(--text-soft);
+  }
+  .demo section { margin-bottom: 3.25rem; }
+  .demo .sub { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+  /* --- break the wide instrument out past the 1080px prose column --- */
+  .demo .wide {
+    width: min(1280px, calc(100vw - 3rem));
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* ---------- setup ---------- */
+  .demo .setup-grid {
+    display: grid; grid-template-columns: minmax(250px, 310px) 1fr; gap: 2rem;
+    align-items: start; background: var(--sand);
+    border: 1px solid var(--border); border-radius: 8px; padding: 1.75rem;
+  }
+  @media (max-width: 820px) { .demo .setup-grid { grid-template-columns: 1fr; } }
+  .demo .picker-wrap { display: flex; flex-direction: column; gap: 0.6rem; }
+  .demo #picker {
+    width: 100%; height: auto; cursor: crosshair; border-radius: 4px;
+    background: var(--surface); border: 1px solid var(--border); touch-action: none;
+  }
+  .demo #picker:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 3px; }
+  .demo .hint {
+    font-size: 0.78rem; color: var(--text-soft); text-align: center; margin: 0; max-width: none;
+  }
+
+  .demo .fields { display: flex; flex-direction: column; gap: 1.35rem; }
+  .demo .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  .demo .field > label {
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-soft);
+  }
+  .demo .orow {
+    display: grid; grid-template-columns: 42px 1fr 54px; gap: 0.75rem; align-items: center;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .demo .orow .tag { font-weight: 600; }
+  .demo .orow[data-g="0"] .tag { color: var(--g0); }
+  .demo .orow[data-g="1"] .tag { color: var(--g1); }
+  .demo .orow[data-g="2"] .tag { color: var(--g2); }
+  .demo .orow[data-g="0"] input[type=range] { accent-color: var(--g0); }
+  .demo .orow[data-g="1"] input[type=range] { accent-color: var(--g1); }
+  .demo .orow[data-g="2"] input[type=range] { accent-color: var(--g2); }
+  .demo .num { font-variant-numeric: tabular-nums; text-align: right; color: var(--text); }
+  .demo input[type=range] { width: 100%; accent-color: var(--accent); }
+
+  .demo .alpha-block {
+    display: grid; grid-template-columns: 1fr 124px; gap: 1rem; align-items: center;
+    border: 1px solid var(--border); border-radius: 6px; padding: 0.85rem 1rem;
+    background: var(--surface);
+  }
+  @media (max-width: 540px) { .demo .alpha-block { grid-template-columns: 1fr; } }
+  .demo .arow {
+    display: grid; grid-template-columns: 1fr 54px; gap: 0.75rem; align-items: center;
+    font-family: var(--mono); font-size: 0.8rem;
+  }
+  .demo .alpha-note, .demo .mode-note {
+    font-size: 0.75rem; color: var(--text-soft); margin: 0.5rem 0 0; line-height: 1.5;
+    max-width: none;
+  }
+  .demo #priorPrev {
+    width: 100%; height: auto; border-radius: 3px; background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .demo .prev-cap {
+    font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-soft);
+    text-align: center; margin: 0.35rem 0 0; max-width: none;
+  }
+
+  .demo .segmented {
+    display: flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    background: var(--surface);
+  }
+  .demo .segmented button {
+    flex: 1 1 0; padding: 0.65rem 0.75rem; border: 0; cursor: pointer;
+    background: transparent; color: var(--text-muted);
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.72rem;
+    letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500;
+    border-right: 1px solid var(--border); transition: background 0.15s ease, color 0.15s ease;
+  }
+  .demo .segmented button:last-child { border-right: 0; }
+  .demo .segmented button[aria-pressed="true"] {
+    background: var(--accent); color: #fff; font-weight: 600;
+  }
+  .demo .segmented button:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -3px; }
+
+  .demo .inline { display: flex; gap: 0.9rem; flex-wrap: wrap; }
+  .demo .inline .field { flex: 1 1 88px; }
+  .demo input[type=number] {
+    font-family: var(--mono); font-size: 0.85rem; padding: 0.45rem 0.55rem;
+    border: 1px solid var(--border); border-radius: 4px; background: var(--surface);
+    color: var(--text); width: 100%;
+  }
+  .demo input:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 1px; }
+  .demo .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+
+  .demo button.ctl {
+    font-family: 'IBM Plex Sans', sans-serif; font-size: 0.78rem;
+    letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500;
+    padding: 0.5rem 0.9rem; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--surface); color: var(--text); cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .demo button.ctl:hover { border-color: var(--accent); color: var(--accent); }
+  .demo button.ctl:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+  .demo button.ctl[disabled] { opacity: 0.35; cursor: not-allowed; }
+  .demo button.ctl.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .demo button.ctl.primary:hover { color: #fff; opacity: 0.88; }
+  .demo .status { font-size: 0.75rem; color: var(--text-soft); font-family: var(--mono); }
+
+  /* ---------- ranking tape ---------- */
+  .demo .tape-scroll { overflow-x: auto; padding-bottom: 0.35rem; }
+  .demo .tape { display: flex; gap: 2px; min-width: max-content; }
+  .demo .cell {
+    border: 0; padding: 0; cursor: pointer; background: none;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-family: var(--mono);
+  }
+  .demo .cell .rank { font-size: 0.53rem; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+  .demo .cell .chip {
+    width: 100%; height: 30px; border-radius: 2px; display: grid; place-items: center;
+    color: #fff; font-size: 0.63rem; font-weight: 600; opacity: 0.28;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+  }
+  .demo .cell[data-g="0"] .chip { background: var(--g0); }
+  .demo .cell[data-g="1"] .chip { background: var(--g1); }
+  .demo .cell[data-g="2"] .chip { background: var(--g2); }
+  .demo .cell.seen .chip { opacity: 0.92; }
+  .demo .cell.now .chip {
+    opacity: 1; transform: translateY(-4px);
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
+  }
+  .demo .cell:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 3px; }
+
+  .demo .controls {
+    display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap;
+    margin-top: 1.25rem; padding: 0.7rem 0.9rem; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .demo #slider { flex: 1 1 200px; min-width: 150px; }
+  .demo .counter {
+    font-family: var(--mono); font-size: 0.8rem; font-variant-numeric: tabular-nums;
+    color: var(--text-muted); white-space: nowrap;
+  }
+  .demo .counter b { color: var(--text); font-size: 0.95rem; }
+
+  /* ---------- the four panels ---------- */
+  .demo .frame {
+    margin-top: 1.1rem; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.4rem 1.5rem 1.1rem;
+  }
+  .demo .frame-head {
+    display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap;
+    padding-bottom: 0.8rem; border-bottom: 1px solid var(--border); margin-bottom: 1.4rem;
+  }
+  .demo .frame-head .big { font-family: 'Newsreader', serif; font-size: 1.5rem; }
+  .demo .frame-head .drew { font-size: 0.9rem; font-weight: 600; }
+  .demo .frame-head .spacer { flex: 1; }
+  .demo .frame-head .avail { font-family: var(--mono); font-size: 0.72rem; color: var(--text-soft); }
+  .demo .panels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem; }
+  @media (max-width: 1100px) { .demo .panels { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .demo .panels { grid-template-columns: 1fr; } }
+  .demo .panel .step {
+    font-family: var(--mono); font-size: 0.56rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--text-soft);
+  }
+  .demo .panel .ttl {
+    font-family: 'Newsreader', serif; font-size: 1.3rem; line-height: 1.2; margin: 0.1rem 0 0.2rem;
+  }
+  .demo .panel .cap {
+    font-family: var(--mono); font-size: 0.66rem; color: var(--text-muted);
+    min-height: 2.8em; margin: 0 0 0.5rem; font-variant-numeric: tabular-nums; max-width: none;
+  }
+  .demo .panel canvas, .demo .panel svg { display: block; width: 100%; height: auto; border-radius: 3px; }
+
+  /* Vertex labels sit outside the canvas: drawn inside they land on the dark end of viridis
+     and disappear. The triangle fills its canvas exactly, so its corners are the box corners. */
+  .demo .tri { position: relative; padding: 1.25em 0 1.45em; }
+  .demo .tri canvas { display: block; width: 100%; height: auto; }
+  .demo .tri .v {
+    position: absolute; font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+    line-height: 1; white-space: nowrap;
+  }
+  .demo .tri .v[data-g="0"] { color: var(--g0); bottom: 0; left: 0; }
+  .demo .tri .v[data-g="1"] { color: var(--g1); bottom: 0; right: 0; }
+  .demo .tri .v[data-g="2"] { color: var(--g2); top: 0; left: 50%; transform: translateX(-50%); }
+  .demo .tri.mini { padding: 1em 0 1.1em; }
+  .demo .tri.mini .v { font-size: 0.62rem; }
+  .demo .key {
+    font-family: var(--mono); font-size: 0.64rem; color: var(--text-muted);
+    margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.2rem;
+  }
+  .demo .key span { display: flex; align-items: center; gap: 0.45rem; }
+  .demo .key .gl { width: 15px; text-align: center; flex: none; font-style: normal; }
+
+  /* ---------- readout tiles ---------- */
+  .demo .tiles {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+    gap: 0.75rem; margin-top: 1rem;
+  }
+  .demo .tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.85rem 1rem;
+  }
+  .demo .tile .head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; }
+  .demo .tile .name {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-soft);
+  }
+  .demo .tile .val {
+    font-family: var(--mono); font-size: 1.3rem; font-variant-numeric: tabular-nums; font-weight: 600;
+  }
+  .demo .tile[data-g="0"] .val { color: var(--g0); }
+  .demo .tile[data-g="1"] .val { color: var(--g1); }
+  .demo .tile[data-g="2"] .val { color: var(--g2); }
+  .demo .bar {
+    position: relative; height: 8px; border-radius: 4px; background: #ece8df; margin: 0.65rem 0 0.5rem;
+  }
+  .demo .bar .fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; transition: width 0.16s ease; }
+  .demo .tile[data-g="0"] .fill { background: var(--g0); }
+  .demo .tile[data-g="1"] .fill { background: var(--g1); }
+  .demo .tile[data-g="2"] .fill { background: var(--g2); }
+  .demo .bar .truth { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--truth); }
+  .demo .bar .fair { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--text); opacity: 0.35; }
+  .demo .tile .foot {
+    font-family: var(--mono); font-size: 0.66rem; color: var(--text-soft);
+    font-variant-numeric: tabular-nums; display: flex; justify-content: space-between; gap: 0.5rem;
+  }
+  .demo .verdict { font-weight: 600; }
+  .demo .verdict.up { color: var(--g0); }
+  .demo .verdict.down { color: var(--g1); }
+  .demo .verdict.flat { color: var(--text-soft); }
+
+  /* ---------- charts ---------- */
+  .demo .chart {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 0.9rem 0.5rem 0.4rem; margin-top: 1rem; overflow-x: auto;
+  }
+  .demo .chart svg { display: block; width: 100%; min-width: 600px; height: auto; }
+  .demo .legend {
+    display: flex; gap: 1.1rem; flex-wrap: wrap; padding: 0.25rem 0.6rem 0.5rem;
+    font-family: var(--mono); font-size: 0.66rem; color: var(--text-muted);
+  }
+  .demo .legend i {
+    display: inline-block; width: 14px; height: 3px; border-radius: 2px;
+    margin-right: 0.35rem; vertical-align: middle;
+  }
+  .demo .legend i.dash { background: none; border-top: 2px dashed var(--truth); height: 0; }
+  .demo .legend i.alarm { background: var(--truth); }
+
+  .demo .readout {
+    display: flex; flex-wrap: wrap; gap: 0.6rem 1.6rem; padding: 0.75rem 0.95rem; margin-top: 1rem;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    font-family: var(--mono); font-size: 0.75rem; color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .demo .readout b { color: var(--text); }
+  .demo .readout.reject { border-color: var(--truth); background: #fbf2f2; }
+  .demo .readout .flag { font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .demo .readout .flag.no { color: var(--text-soft); }
+  .demo .readout .flag.yes { color: var(--truth); }
+
+  .demo table.calib {
+    width: 100%; max-width: 620px; border-collapse: collapse;
+    font-family: var(--mono); font-size: 0.78rem; margin-bottom: 1rem;
+  }
+  .demo table.calib th {
+    text-align: left; font-weight: 500; color: var(--text-soft);
+    border-bottom: 1px solid var(--border); padding: 0.4rem 0.6rem 0.4rem 0;
+  }
+  .demo table.calib td { padding: 0.35rem 0.6rem 0.35rem 0; }
+
+  @media (prefers-reduced-motion: reduce) { .demo * { transition: none !important; } }
+  </style>
+</head>
+<body>
+
+  <nav class="site-nav">
+    <div class="inner">
+      <a href="/" class="brand">Mauritz Cartier van Dissel</a>
+      <ul>
+        <li><a href="/">About</a></li>
+        <li><a href="/research/" class="current">Research</a></li>
+        <li><a href="/#publications">Publications</a></li>
+        <li><a href="/CV.pdf">CV</a></li>
+        <li><a href="/#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="demo">
+
+    <a href="/research/fairness-rankings/" class="back-link">&larr; Fairness in rankings</a>
+
+    <header class="project-header">
+      <div class="eyebrow">Interactive demo &middot; Bayesian inference</div>
+      <h1>Watching a posterior concentrate, one rank position at a time</h1>
+      <p class="lede">
+        Set the true selection weights and the prior, draw a ranking from them, then step through
+        it. Every frame is a single draw &mdash; and the truth is marked on every panel, so you can
+        watch the estimate find it, or fail to.
+      </p>
+    </header>
+<section>
+    <h2>Choose the truth and the prior</h2>
+    <p class="sub">Click anywhere in the triangle to place the true &omega;, or use the sliders.
+      Each corner is &ldquo;this group takes everything&rdquo;; the hollow dot at the centre is
+      the fair weighting, where group membership has no effect on rank.</p>
+
+    <div class="setup-grid">
+      <div class="picker-wrap">
+        <div class="tri">
+          <span class="v" data-g="2">C</span>
+          <span class="v" data-g="0">A</span>
+          <span class="v" data-g="1">B</span>
+          <canvas id="picker" width="320" height="277" tabindex="0"
+                aria-label="Pick the true omega on the simplex"></canvas>
+        </div>
+        <p class="hint">drag the diamond &mdash; arrow keys nudge it</p>
+      </div>
+
+      <div class="fields">
+        <div class="field">
+          <label>True weights &omega; (normalised to sum to 1)</label>
+          <div id="orows" style="display:flex;flex-direction:column;gap:9px"></div>
+        </div>
+
+        <div class="field">
+          <label for="alphaRange">Prior concentration &alpha; &mdash; Dirichlet(&alpha;, &alpha;, &alpha;)</label>
+          <div class="alpha-block">
+            <div>
+              <div class="arow">
+                <input type="range" id="alphaRange" min="10" max="3000" step="1" value="200"
+                       aria-label="Prior concentration alpha" />
+                <span class="num" id="alphaNum">2.00</span>
+              </div>
+              <p class="alpha-note" id="alphaNote"></p>
+            </div>
+            <div>
+              <div class="tri mini">
+                <span class="v" data-g="2">C</span>
+                <span class="v" data-g="0">A</span>
+                <span class="v" data-g="1">B</span>
+                <canvas id="priorPrev" width="132" height="114"
+                      aria-label="The prior density this alpha produces"></canvas>
+              </div>
+              <p class="prev-cap">prior &pi;(&omega;) vs average</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Procedure</label>
+          <div class="segmented" role="group" aria-label="Inference procedure">
+            <button type="button" id="modeSavi" aria-pressed="true">SAVI &mdash; anytime-valid</button>
+            <button type="button" id="modeBayes" aria-pressed="false">Bayesian &mdash; fixed k</button>
+          </div>
+          <p class="mode-note" id="modeNote"></p>
+        </div>
+
+        <div class="inline">
+          <div class="field"><label for="nA">Pool A</label>
+            <input type="number" id="nA" min="1" max="200" step="1" value="30" /></div>
+          <div class="field"><label for="nB">Pool B</label>
+            <input type="number" id="nB" min="1" max="200" step="1" value="15" /></div>
+          <div class="field"><label for="nC">Pool C</label>
+            <input type="number" id="nC" min="1" max="200" step="1" value="5" /></div>
+          <div class="field"><label for="seed">Seed</label>
+            <input type="number" id="seed" min="0" max="999999" step="1" value="7" /></div>
+        </div>
+
+        <div class="actions">
+          <button class="ctl primary" id="sample" type="button">Sample a ranking</button>
+          <button class="ctl" id="reseed" type="button">New seed &amp; resample</button>
+          <span class="status" id="status"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="results" hidden>
+    <h2>The sampled ranking</h2>
+    <p class="sub">Every position in rank order, coloured by group. Filled cells have been
+      observed; the outlined one is the current draw. Click any position to jump to it.</p>
+    <div class="tape-scroll wide"><div class="tape" id="tape"></div></div>
+
+    <div class="controls">
+      <button class="ctl" id="first" type="button">&#124;&#9664;</button>
+      <button class="ctl" id="prev" type="button">&#9664; Prev</button>
+      <button class="ctl primary" id="play" type="button">&#9654; Play</button>
+      <button class="ctl" id="next" type="button">Next &#9654;</button>
+      <input type="range" id="slider" min="1" max="50" value="1" step="1" aria-label="Rank position" />
+      <span class="counter">draw <b id="counter">1</b> / <span id="total">50</span></span>
+    </div>
+
+    <div class="frame wide">
+      <div class="frame-head">
+        <span class="big" id="fhDraw">Draw 01</span>
+        <span class="drew" id="fhDrew">drew group A</span>
+        <span class="spacer"></span>
+        <span class="avail" id="fhAvail">available 30, 15, 5</span>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="step">step 1 &middot; before</div>
+          <div class="ttl">Prior</div>
+          <p class="cap" id="capPrior">belief carried into this draw</p>
+          <div class="tri">
+            <span class="v" data-g="2">C</span>
+            <span class="v" data-g="0">A</span>
+            <span class="v" data-g="1">B</span>
+            <canvas id="cvPrior" width="320" height="277"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="step">step 2 &middot; evidence</div>
+          <div class="ttl">Likelihood</div>
+          <p class="cap" id="capLik">&omega;c&middot;rc / (&omega;&middot;r)</p>
+          <div class="tri">
+            <span class="v" data-g="2">C</span>
+            <span class="v" data-g="0">A</span>
+            <span class="v" data-g="1">B</span>
+            <canvas id="cvLik" width="320" height="277"></canvas>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="step">step 3 &middot; after</div>
+          <div class="ttl">Posterior</div>
+          <p class="cap" id="capPost">mean &omega;</p>
+          <div class="tri">
+            <span class="v" data-g="2">C</span>
+            <span class="v" data-g="0">A</span>
+            <span class="v" data-g="1">B</span>
+            <canvas id="cvPost" width="320" height="277"></canvas>
+          </div>
+          <div class="key">
+            <span><i class="gl" style="color:var(--truth)">&#9670;</i> true &omega; (what you set)</span>
+            <span><i class="gl">&#10006;</i> posterior mean</span>
+            <span><i class="gl">&#9675;</i> fair &omega; = (1/3, 1/3, 1/3)</span>
+            <span id="keyCS"><i class="gl">&mdash;</i> 95% confidence sequence</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="step">step 4 &middot; forecast</div>
+          <div class="ttl">Predictive</div>
+          <p class="cap" id="capPred">P(next draw)</p>
+          <svg id="svPred" viewBox="0 0 320 277" role="img"
+               aria-label="Predicted probability of each group winning the next draw"></svg>
+        </div>
+      </div>
+    </div>
+
+    <section>
+      <h2>Posterior mean against the truth</h2>
+      <p class="sub">The red rule on each bar is the value you set; the faint one is the fair
+        value 1/3.</p>
+      <div class="tiles wide" id="tiles"></div>
+    </section>
+
+    <section>
+      <h2>How the estimate moved</h2>
+      <p class="sub" id="trajSub"></p>
+      <div class="chart wide">
+        <svg id="traj" viewBox="0 0 720 210" role="img"
+             aria-label="Posterior mean of each group weight across the ranking, with an
+                         uncertainty band"></svg>
+        <div class="legend" id="trajLegend"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 id="evidHead">The fairness test &mdash; evidence as a martingale</h2>
+      <p class="sub" id="evidSub"></p>
+      <div class="chart wide">
+        <svg id="evid" viewBox="0 0 720 230" role="img"
+             aria-label="Evidence process across the ranking, on a log scale"></svg>
+        <div class="legend" id="evidLegend"></div>
+      </div>
+      <div class="readout" id="evidOut"></div>
+    </section>
+  </section>
+
+  <section class="prose">
+    <h2>Reading the panels</h2>
+    <h3>Why the triangle</h3>
+    <p>The weights are normalised so <code>&omega;A + &omega;B + &omega;C = 1</code>, which makes
+      the parameter space a triangle. Every panel is a density over that triangle, evaluated on a
+      pixel lattice rather than sampled &mdash; what you see is the exact surface, not a smoothed
+      cloud of draws.</p>
+    <h3>What &alpha; does</h3>
+    <p>The prior is symmetric &mdash; before seeing the ranking, no group is assumed favoured
+      &mdash; so &alpha; controls only how tightly it clusters on the fair centre.
+      <code>&alpha; = 1</code> is flat over the whole triangle; large &alpha; concentrates the
+      prior on fairness and so bets on <em>mild</em> departures from it, which makes the evidence
+      grow more slowly against a badly skewed ranking; &alpha; &lt; 1 pushes mass out to the edges
+      and corners. It is a real modelling choice, not a nuisance: it is the bet the auditor places
+      before looking.</p>
+    <h3>Why the likelihood keeps changing shape</h3>
+    <p>The second panel is <code>&omega;c &middot; rc / (&omega; &middot; r)</code> &mdash; the
+      chance that this particular group won this particular draw. It depends on <code>r</code>,
+      the candidates still available, so the same group drawn twice contributes different evidence
+      at different depths. Drawing from a group that is nearly exhausted is strong evidence of a
+      high weight; drawing from a group that dominates what is left says almost nothing. This
+      dependence on <code>r</code> is the whole of sampling without replacement.</p>
+    <h3>Two procedures, one number</h3>
+    <p>Switch the procedure at the top and the curve does not move &mdash; because
+      <code>E<sub>t</sub></code> and <code>BF<sub>10</sub></code> are the same quantity,
+      <code>m<sub>t</sub> / L<sub>f,t</sub></code>. What changes is the <em>decision rule</em>
+      attached to it, and the region drawn on the posterior. SAVI compares against a single
+      threshold <code>1/&delta; = 20</code> and earns the right to be checked after every
+      position; the Bayesian reading grades the same value on the Kass&ndash;Raftery scale at a
+      prefix that was supposed to be fixed in advance. The regions genuinely differ: the
+      confidence sequence is a superlevel set of the <em>likelihood</em> at
+      <code>&delta;&middot;m<sub>t</sub></code>, the HDI a superlevel set of the
+      <em>posterior</em> holding 95% of its mass.</p>
+
+    <h3>Yes, the anytime-valid version is conservative</h3>
+    <p>Visibly so, and it is worth being precise about how much. Simulating 400 rankings from a
+      genuinely fair &omega; on the default pool with &alpha;&nbsp;=&nbsp;2:</p>
+    <table class="calib">
+      <tr>
+        <th>under a fair truth</th>
+        <th>measured</th>
+        <th>nominal</th></tr>
+      <tr><td>SAVI rejects at some draw</td>
+          <td><b>1.3%</b></td><td>&le; 5%</td></tr>
+      <tr><td>confidence sequence covers at every draw</td>
+          <td><b>98.5%</b></td><td>&ge; 95%</td></tr>
+      <tr><td>95% HDI covers at the final draw</td>
+          <td><b>96.5%</b></td><td>&asymp; 95%</td></tr>
+    </table>
+    <p>So the test spends only about a quarter of its error budget, and the confidence sequence
+      over-covers by three and a half points where the HDI over-covers by one and a half. Three
+      things cause it, and only the first is avoidable:</p>
+    <p><b>The prior dilutes the evidence.</b> <code>m<sub>t</sub></code> averages the likelihood
+      over the <em>whole</em> simplex, including the regions the data have already ruled out. A
+      prior spread thin over parameter values nobody is testing for drags the average down and the
+      Bayes factor with it. Narrowing &alpha; toward the alternative you actually care about
+      recovers real power &mdash; this is a modelling choice, not a fixed cost.</p>
+    <p><b>Ville's inequality is loose.</b> <code>P(sup<sub>t</sub> E<sub>t</sub> &ge; 1/&delta;)
+      &le; &delta;</code> is tight only for a martingale that either reaches the boundary exactly
+      or drifts to zero. A real e-process overshoots when it crosses and frequently never
+      approaches, so the true rate sits well under the bound.</p>
+    <p><b>Time-uniformity is genuinely expensive.</b> Covering at all 50 prefixes at once is a
+      far stronger demand than covering at one chosen prefix, and the confidence sequence pays
+      for it in width. That part is not slack &mdash; it is the guarantee.</p>
+    <p>The honest summary: if you truly fix <code>k</code> in advance, the Bayesian region is
+      tighter and you should use it. If you want to watch the ranking fill and stop when
+      convinced, the extra width is the price of that freedom, and it is smaller than the
+      alternative &mdash; peeking at a p-value with no correction pushes the error rate to
+      roughly 23% at a nominal 5%.</p>
+    <h3>What to try</h3>
+    <p>Put the truth at the centre and watch the posterior stay diffuse and the evidence wander
+      around 1: a fair ranking simply carries little information about which group is favoured, and
+      the martingale has nowhere to climb. Then push the truth toward the corner of the
+      <em>smallest</em> group. Rare groups are the most informative &mdash; a 5-candidate group
+      appearing early is very unlikely under fairness &mdash; so the posterior sharpens fast and
+      the evidence crosses 20 within a few positions. Finally set &alpha; = 30 and sample again:
+      the same ranking now earns much less evidence, because the alternative you bet on barely
+      admits the skew you are trying to detect.</p>
+  </section>
+
+  <footer>
+    Model ported to the browser from examples/sequential_simplex.py &middot; lattice, chain-rule
+    likelihood, depletion, confidence sequence and e-process follow that module and
+    wallenius_rank.savi
+  </footer>
+
+<script>
+"use strict";
+const SQ32 = Math.sqrt(3) / 2;
+const GROUPS = ["A", "B", "C"];
+const GCSS = ["--grpA", "--grpB", "--grpC"];
+const DELTA = 0.05;
+
+/* ===== colour ramps ========================================================
+   viridis and magma, sampled at the 24 levels matplotlib's tricontourf used in
+   sequential_simplex.plot_simplex_field, and applied as 24 discrete bands so the panels keep
+   the banded contour reading of the original figures rather than a continuous wash. */
+const VIRIDIS = ["#440154", "#471164", "#482071", "#472e7c", "#443b84", "#3f4889", "#3a548c",
+  "#34608d", "#2f6c8e", "#2a768e", "#26818e", "#228b8d", "#1f958b", "#1fa088", "#24aa83",
+  "#2fb47c", "#42be71", "#58c765", "#70cf57", "#8bd646", "#a8db34", "#c5e021", "#e2e418", "#fde725"];
+const MAGMA = ["#000004", "#060518", "#110c2f", "#1e1149", "#2f1163", "#420f75", "#54137d",
+  "#651a80", "#782281", "#892881", "#9b2e7f", "#ad347c", "#bf3a77", "#d0416f", "#e04c67",
+  "#ed5a5f", "#f66e5c", "#fb835f", "#fd9869", "#feac76", "#fec185", "#fed597", "#fde9aa", "#fcfdbf"];
+
+function hex2rgb(h) {
+  return [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+}
+function buildBands(stops) {
+  const out = new Uint8ClampedArray(stops.length * 3);
+  stops.forEach((h, i) => { const c = hex2rgb(h); out[i*3] = c[0]; out[i*3+1] = c[1]; out[i*3+2] = c[2]; });
+  return { lut: out, n: stops.length };
+}
+const BANDS_BELIEF = buildBands(VIRIDIS);
+const BANDS_LIK = buildBands(MAGMA);
+const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+/* ===== the pixel lattice over the simplex ================================== */
+function buildLattice(w, h) {
+  const px = [], b0 = [], b1 = [], b2 = [];
+  for (let iy = 0; iy < h; iy++) {
+    const y = (1 - (iy + 0.5) / h) * SQ32;
+    for (let ix = 0; ix < w; ix++) {
+      const x = (ix + 0.5) / w;
+      const w2 = y / SQ32, w1 = x - 0.5 * w2, w0 = 1 - w1 - w2;
+      if (w0 > 1e-6 && w1 > 1e-6 && w2 > 1e-6) {
+        px.push(iy * w + ix); b0.push(w0); b1.push(w1); b2.push(w2);
+      }
+    }
+  }
+  return { w, h, px: Int32Array.from(px),
+           om: [Float64Array.from(b0), Float64Array.from(b1), Float64Array.from(b2)],
+           n: px.length };
+}
+const CW = 320, CH = Math.round(CW * SQ32);
+const LAT = buildLattice(CW, CH);
+const LOGOM = LAT.om.map(a => Float64Array.from(a, Math.log));
+const LAT_S = buildLattice(132, Math.round(132 * SQ32));
+
+/* ===== barycentric <-> canvas ============================================== */
+function toXY(om, w, h) {
+  const x = om[1] + 0.5 * om[2], y = SQ32 * om[2];
+  return [x * w, (1 - y / SQ32) * h];
+}
+function fromXY(cx, cy, w, h) {
+  const x = cx / w, y = (1 - cy / h) * SQ32;
+  const w2 = y / SQ32, w1 = x - 0.5 * w2, w0 = 1 - w1 - w2;
+  return [w0, w1, w2];
+}
+function clampSimplex(om) {
+  const c = om.map(v => Math.max(v, 1e-4));
+  const s = c[0] + c[1] + c[2];
+  return c.map(v => v / s);
+}
+
+/* ===== seeded RNG ========================================================== */
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ===== the model =========================================================== */
+function sampleRanking(omega, nVec, seed) {
+  const rand = mulberry32(seed), avail = nVec.slice(), out = [];
+  let left = avail[0] + avail[1] + avail[2];
+  while (left > 0) {
+    const wgt = [omega[0] * avail[0], omega[1] * avail[1], omega[2] * avail[2]];
+    const tot = wgt[0] + wgt[1] + wgt[2];
+    let u = rand() * tot, g = 0;
+    for (; g < 2 && u >= wgt[g]; g++) u -= wgt[g];
+    out.push(g); avail[g]--; left--;
+  }
+  return out;
+}
+
+/* Cumulative log likelihood after each draw. log pi_t = logPrior0 + logLikCum_t, so only the
+   cumulative sum has to be stored; everything else is read off it. */
+function computeSteps(ranking, nVec, alpha) {
+  const N = LAT.n;
+  const logPrior0 = new Float64Array(N);
+  if (alpha !== 1) {
+    for (let i = 0; i < N; i++) {
+      logPrior0[i] = (alpha - 1) * (LOGOM[0][i] + LOGOM[1][i] + LOGOM[2][i]);
+    }
+  }
+  let mx = -Infinity;
+  for (let i = 0; i < N; i++) if (logPrior0[i] > mx) mx = logPrior0[i];
+  const prior0W = new Float64Array(N);
+  let prior0Sum = 0;
+  for (let i = 0; i < N; i++) { prior0W[i] = Math.exp(logPrior0[i] - mx); prior0Sum += prior0W[i]; }
+
+  const cum = new Float64Array(N);
+  const snaps = [], meta = [];
+  const avail = nVec.slice();
+  let logFair = 0;
+
+  for (let t = 0; t < ranking.length; t++) {
+    const g = ranking[t];
+    const availNow = avail.slice();
+    const totNow = availNow[0] + availNow[1] + availNow[2];
+
+    const priorW = weightsOf(logPrior0, cum, N);
+    meta.push({
+      draw: t + 1, group: g, avail: availNow,
+      pred: predictive(priorW, availNow, N),
+      fair: availNow.map(v => v / totNow)
+    });
+
+    /* the fair null: every remaining candidate equally likely */
+    logFair += Math.log(availNow[g]) - Math.log(totNow);
+
+    const om = LAT.om[g], la = Math.log(availNow[g]);
+    for (let i = 0; i < N; i++) {
+      const dot = LAT.om[0][i] * availNow[0] + LAT.om[1][i] * availNow[1] + LAT.om[2][i] * availNow[2];
+      cum[i] += Math.log(om[i]) + la - Math.log(dot);
+    }
+    snaps.push(Float32Array.from(cum));
+
+    const postW = weightsOf(logPrior0, cum, N);
+    meta[t].post = meanOf(postW, N);
+
+    /* m_t = E_prior[L_t], the marginal likelihood, and with it both the confidence sequence
+       level (delta * m_t) and the e-value E_t = m_t / L_f,t */
+    let cmax = -Infinity;
+    for (let i = 0; i < N; i++) if (cum[i] > cmax) cmax = cum[i];
+    let acc = 0;
+    for (let i = 0; i < N; i++) acc += prior0W[i] * Math.exp(cum[i] - cmax);
+    const logM = cmax + Math.log(acc / prior0Sum);
+    meta[t].cs = { max: cmax, level: DELTA * Math.exp(logM - cmax) };
+    meta[t].logE = logM - logFair;
+
+    /* both regions projected onto each weight, so the trajectory chart can band either one
+       without recomputing when the procedure toggle flips */
+    const csField = new Float64Array(N);
+    for (let i = 0; i < N; i++) csField[i] = Math.exp(cum[i] - cmax);
+    meta[t].csProj = projectRegion(csField, meta[t].cs.level, N);
+    meta[t].hdiProj = projectRegion(postW, hdiLevel(postW, 1 - DELTA), N);
+    avail[g]--;
+  }
+  return { logPrior0, snaps, meta };
+}
+
+function weightsOf(logPrior0, cum, N) {
+  const w = new Float64Array(N);
+  let mx = -Infinity;
+  for (let i = 0; i < N; i++) { w[i] = logPrior0[i] + cum[i]; if (w[i] > mx) mx = w[i]; }
+  for (let i = 0; i < N; i++) w[i] = Math.exp(w[i] - mx);
+  return w;
+}
+function meanOf(w, N) {
+  let s = 0, m = [0, 0, 0];
+  for (let i = 0; i < N; i++) {
+    s += w[i];
+    m[0] += w[i] * LAT.om[0][i]; m[1] += w[i] * LAT.om[1][i]; m[2] += w[i] * LAT.om[2][i];
+  }
+  return [m[0] / s, m[1] / s, m[2] / s];
+}
+/* Flatten a region on the simplex onto each weight axis: [min, max] of omega_c over the region.
+   For the confidence sequence this inherits the time-uniform guarantee (if omega lies in C_t at
+   every t, so does each of its coordinates in the projection), at the cost of being wider than a
+   marginal interval would be. Applied to both regions so the two bands stay comparable, and so
+   the band always matches the outline drawn on the triangle. */
+function projectRegion(field, level, N) {
+  const lo = [1, 1, 1], hi = [0, 0, 0];
+  for (let i = 0; i < N; i++) {
+    if (field[i] <= level) continue;
+    for (let c = 0; c < 3; c++) {
+      const v = LAT.om[c][i];
+      if (v < lo[c]) lo[c] = v;
+      if (v > hi[c]) hi[c] = v;
+    }
+  }
+  return { lo, hi };
+}
+
+function predictive(w, avail, N) {
+  let s = 0, p = [0, 0, 0];
+  for (let i = 0; i < N; i++) {
+    const a = LAT.om[0][i] * avail[0], b = LAT.om[1][i] * avail[1], c = LAT.om[2][i] * avail[2];
+    const d = a + b + c;
+    s += w[i]; p[0] += w[i] * a / d; p[1] += w[i] * b / d; p[2] += w[i] * c / d;
+  }
+  return [p[0] / s, p[1] / s, p[2] / s];
+}
+
+/* ===== rendering =========================================================== */
+/* ``range`` pins the colour scale to fixed limits instead of stretching it to the field's own
+   min and max. Per-frame min-max is right for the belief panels -- it spends the whole ramp on
+   whatever structure is there -- but it makes the scale mean something different in every frame,
+   and for a family like Dirichlet(a) that is actively misleading: it renders a nearly flat prior
+   at a = 0.99 with exactly as much contrast as a sharply peaked one at a = 10, and it *inverts*
+   as a crosses 1, because the min and the max swap corners. The prior preview passes a fixed
+   range for that reason. */
+function paintField(canvas, lat, field, bands, gamma, contour, range) {
+  const ctx = canvas.getContext("2d");
+  const img = ctx.createImageData(lat.w, lat.h);
+  const d = img.data;
+  const bg = hex2rgb(cssVar("--field-bg") || "#ffffff");
+  for (let i = 0; i < d.length; i += 4) {
+    d[i] = bg[0]; d[i + 1] = bg[1]; d[i + 2] = bg[2]; d[i + 3] = 255;
+  }
+  let lo, hi, flat = false;
+  if (range) {
+    lo = range.lo; hi = range.hi;
+  } else {
+    lo = Infinity; hi = -Infinity;
+    for (let i = 0; i < lat.n; i++) { const v = field[i]; if (v < lo) lo = v; if (v > hi) hi = v; }
+    /* a genuinely constant field (a uniform prior, say) has no min-max scale at all; without
+       this it would map to t = 0 and render as the darkest band, which reads as "extreme" */
+    flat = hi - lo <= 1e-12 * Math.max(1, Math.abs(hi));
+  }
+  const span = hi - lo || 1;
+  const nb = bands.n, lut = bands.lut;
+  for (let i = 0; i < lat.n; i++) {
+    let t = flat ? 0.5 : (field[i] - lo) / span;
+    if (gamma) t = Math.pow(t, gamma);
+    const k = Math.min(nb - 1, Math.max(0, Math.floor(t * nb))) * 3;
+    const o = lat.px[i] * 4;
+    d[o] = lut[k]; d[o + 1] = lut[k + 1]; d[o + 2] = lut[k + 2]; d[o + 3] = 255;
+  }
+  if (contour) paintContour(d, lat, contour.field, contour.level);
+  ctx.putImageData(img, 0, 0);
+  strokeTriangle(ctx, canvas.width, canvas.height);
+}
+
+/* The region boundary, drawn as a white line on an ink halo. viridis runs dark-purple to
+   yellow, so neither colour alone survives the whole ramp; the pair always does. */
+function paintContour(d, lat, field, level) {
+  const inside = new Uint8Array(lat.w * lat.h);
+  const known = new Uint8Array(lat.w * lat.h);
+  for (let i = 0; i < lat.n; i++) {
+    known[lat.px[i]] = 1;
+    inside[lat.px[i]] = field[i] > level ? 1 : 0;
+  }
+  const edge = [];
+  for (let i = 0; i < lat.n; i++) {
+    const p = lat.px[i];
+    if (!inside[p]) continue;
+    const x = p % lat.w, y = (p - x) / lat.w;
+    const nb = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
+    for (const [nx, ny] of nb) {
+      if (nx < 0 || ny < 0 || nx >= lat.w || ny >= lat.h) { edge.push(p); break; }
+      const q = ny * lat.w + nx;
+      if (!known[q] || !inside[q]) { edge.push(p); break; }
+    }
+  }
+  const halo = new Set();
+  for (const p of edge) {
+    const x = p % lat.w, y = (p - x) / lat.w;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx >= 0 && ny >= 0 && nx < lat.w && ny < lat.h) halo.add(ny * lat.w + nx);
+    }
+  }
+  for (const p of halo) { const o = p * 4; d[o] = 26; d[o + 1] = 26; d[o + 2] = 26; }
+  for (const p of edge) {
+    const x = p % lat.w, y = (p - x) / lat.w;
+    for (let dy = 0; dy <= 1; dy++) for (let dx = 0; dx <= 1; dx++) {
+      const nx = x + dx, ny = y + dy;
+      if (nx < lat.w && ny < lat.h) {
+        const o = (ny * lat.w + nx) * 4;
+        d[o] = 255; d[o + 1] = 255; d[o + 2] = 255;
+      }
+    }
+  }
+}
+
+function strokeTriangle(ctx, w, h) {
+  ctx.save();
+  ctx.strokeStyle = "rgba(26,26,26,0.75)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  const pts = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(o => toXY(o, w, h));
+  ctx.moveTo(pts[0][0], pts[0][1]);
+  ctx.lineTo(pts[1][0], pts[1][1]);
+  ctx.lineTo(pts[2][0], pts[2][1]);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawMarkers(canvas, opts) {
+  const ctx = canvas.getContext("2d"), w = canvas.width, h = canvas.height;
+  if (opts.fair !== false) {
+    const p = toXY([1 / 3, 1 / 3, 1 / 3], w, h);
+    ctx.beginPath(); ctx.arc(p[0], p[1], 4.5, 0, 2 * Math.PI);
+    ctx.fillStyle = "#ffffff"; ctx.fill();
+    ctx.lineWidth = 1.4; ctx.strokeStyle = "rgba(26,26,26,0.9)"; ctx.stroke();
+  }
+  if (opts.mean) {
+    const [x, y] = toXY(opts.mean, w, h), s = 5.5;
+    ctx.lineCap = "round";
+    for (const [col, lw] of [["#1a1a1a", 5.4], ["#ffffff", 2.6]]) {
+      ctx.strokeStyle = col; ctx.lineWidth = lw;
+      ctx.beginPath();
+      ctx.moveTo(x - s, y - s); ctx.lineTo(x + s, y + s);
+      ctx.moveTo(x + s, y - s); ctx.lineTo(x - s, y + s);
+      ctx.stroke();
+    }
+  }
+  if (opts.truth) {
+    const [x, y] = toXY(opts.truth, w, h), s = 6.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - s); ctx.lineTo(x + s, y); ctx.lineTo(x, y + s); ctx.lineTo(x - s, y);
+    ctx.closePath();
+    ctx.fillStyle = "#7d2828"; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#ffffff"; ctx.stroke();
+  }
+}
+
+/* ===== state =============================================================== */
+let omegaTrue = [0.2, 0.3, 0.5];
+let nVec = [30, 15, 5];
+let alpha = 2;
+let mode = "savi";                 /* "savi" (anytime-valid) or "bayes" (fixed k) */
+let ranking = null, model = null, idx = 0, timer = null;
+
+/* Kass-Raftery reading of a Bayes factor, used only in Bayesian mode */
+const KR = [[100, "decisive"], [30, "very strong"], [10, "strong"], [3, "substantial"],
+            [1, "barely worth a mention"]];
+function krWord(bf) {
+  if (bf < 1) { const inv = KR.find(k => 1 / bf >= k[0]); return (inv ? inv[1] : "barely worth a mention") + " for fairness"; }
+  const k = KR.find(k => bf >= k[0]);
+  return (k ? k[1] : "barely worth a mention") + " for bias";
+}
+
+/* Highest-density level: the largest density whose superlevel set still holds `prob` of the
+   mass. Lattice cells have equal area, so mass is proportional to the density value.
+   Mirrors sequential_simplex.hdi_field. */
+function hdiLevel(w, prob) {
+  const a = Float64Array.from(w).sort();          /* ascending */
+  let tot = 0;
+  for (let i = 0; i < a.length; i++) tot += a[i];
+  let c = 0;
+  for (let i = a.length - 1; i >= 0; i--) {
+    c += a[i];
+    if (c / tot >= prob) return a[i];
+  }
+  return a[0];
+}
+
+/* ===== the omega picker ==================================================== */
+const picker = document.getElementById("picker");
+function drawPicker() {
+  const ctx = picker.getContext("2d"), w = picker.width, h = picker.height;
+  const img = ctx.createImageData(w, h);
+  const d = img.data;
+  const bg = hex2rgb(cssVar("--field-bg") || "#ffffff");
+  for (let i = 0; i < d.length; i += 4) { d[i] = bg[0]; d[i+1] = bg[1]; d[i+2] = bg[2]; d[i+3] = 255; }
+  /* tint by the group each point favours, so the corners read at a glance */
+  const cols = [hex2rgb("#2d4a6b"), hex2rgb("#8a6a1c"), hex2rgb("#3f6b52")];
+  for (let i = 0; i < LAT.n; i++) {
+    const o = LAT.px[i] * 4;
+    let r = 0, g = 0, b = 0, used = 0;
+    for (let c = 0; c < 3; c++) {
+      const t = Math.max(0, (LAT.om[c][i] - 1 / 3) * 1.5);
+      r += cols[c][0] * t; g += cols[c][1] * t; b += cols[c][2] * t; used += t;
+    }
+    const rest = Math.max(0, 1 - used);
+    d[o] = r + 251 * rest; d[o+1] = g + 250 * rest; d[o+2] = b + 247 * rest; d[o+3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  strokeTriangle(ctx, w, h);
+  drawMarkers(picker, { truth: omegaTrue });
+}
+
+/* How many e-folds above and below the average density the ramp spans. Fixed, so that the
+   picture changes smoothly with alpha rather than being restretched at every value. */
+const PRIOR_SPAN = 4;
+
+function drawPriorPreview() {
+  const n = LAT_S.n;
+  const f = new Float64Array(n);
+  for (let i = 0; i < n; i++) {
+    f[i] = (alpha - 1) * (Math.log(LAT_S.om[0][i]) + Math.log(LAT_S.om[1][i]) + Math.log(LAT_S.om[2][i]));
+  }
+  /* Plot log density relative to its own average over the simplex. At alpha = 1 that is exactly
+     zero everywhere, so the panel sits mid-ramp; either side of 1 it departs from mid-ramp by an
+     amount proportional to |alpha - 1|, which is what a continuous family should look like. */
+  let mx = -Infinity;
+  for (let i = 0; i < n; i++) if (f[i] > mx) mx = f[i];
+  let sum = 0;
+  for (let i = 0; i < n; i++) sum += Math.exp(f[i] - mx);
+  const logMean = mx + Math.log(sum / n);
+  for (let i = 0; i < n; i++) f[i] -= logMean;
+
+  const cv = document.getElementById("priorPrev");
+  paintField(cv, LAT_S, f, BANDS_BELIEF, null, null, { lo: -PRIOR_SPAN, hi: PRIOR_SPAN });
+  drawMarkers(cv, { truth: omegaTrue });
+}
+
+function setOmega(om, from) {
+  omegaTrue = clampSimplex(om);
+  document.querySelectorAll(".orow").forEach((row, g) => {
+    if (from !== "slider") row.querySelector("input").value = Math.max(1, Math.round(omegaTrue[g] * 1000));
+    row.querySelector(".num").textContent = omegaTrue[g].toFixed(3);
+  });
+  drawPicker();
+  drawPriorPreview();
+}
+
+let dragging = false;
+function pickFrom(ev) {
+  const r = picker.getBoundingClientRect();
+  const cx = (ev.clientX - r.left) * (picker.width / r.width);
+  const cy = (ev.clientY - r.top) * (picker.height / r.height);
+  setOmega(fromXY(cx, cy, picker.width, picker.height));
+}
+picker.addEventListener("pointerdown", e => {
+  dragging = true; picker.setPointerCapture(e.pointerId); pickFrom(e); picker.focus();
+});
+picker.addEventListener("pointermove", e => { if (dragging) pickFrom(e); });
+picker.addEventListener("pointerup", e => { dragging = false; picker.releasePointerCapture(e.pointerId); });
+picker.addEventListener("keydown", e => {
+  const step = e.shiftKey ? 0.05 : 0.01;
+  const moves = { ArrowUp: [0, 0, step], ArrowDown: [0, 0, -step],
+                  ArrowLeft: [step, -step, 0], ArrowRight: [-step, step, 0] };
+  if (moves[e.key]) {
+    e.preventDefault();
+    setOmega(omegaTrue.map((v, i) => v + moves[e.key][i]));
+  }
+});
+
+const orows = document.getElementById("orows");
+GROUPS.forEach((g, i) => {
+  const row = document.createElement("div");
+  row.className = "orow"; row.dataset.g = i;
+  row.innerHTML = `<span class="tag">&omega;${g}</span>
+    <input type="range" min="1" max="1000" value="${Math.round(omegaTrue[i] * 1000)}"
+           aria-label="Weight for group ${g}" />
+    <span class="num">${omegaTrue[i].toFixed(3)}</span>`;
+  row.querySelector("input").addEventListener("input", () => {
+    setOmega(Array.from(orows.querySelectorAll("input")).map(el => +el.value), "slider");
+  });
+  orows.appendChild(row);
+});
+
+/* alpha: the slider is log-spaced, so the interesting range below 1 gets real travel */
+const alphaRange = document.getElementById("alphaRange");
+function alphaFromSlider(v) { return Math.exp(Math.log(0.2) + (v / 3000) * (Math.log(50) - Math.log(0.2))); }
+function sliderFromAlpha(a) { return 3000 * (Math.log(a) - Math.log(0.2)) / (Math.log(50) - Math.log(0.2)); }
+function setAlpha(a) {
+  /* Rounded to the two decimals actually displayed. The slider steps in integers on a log scale
+     and none of them lands on 1 exactly, so without this the readout says "1.00" while alpha is
+     really 1.0010 — on the alpha > 1 side of a family whose shape flips at 1. */
+  alpha = Math.min(50, Math.max(0.2, Math.round(a * 100) / 100));
+  document.getElementById("alphaNum").textContent = alpha.toFixed(2);
+  document.getElementById("alphaNote").textContent =
+    alpha < 1 ? "mass pushed toward the edges and corners — favours extreme weights"
+    : alpha === 1 ? "flat over the whole simplex — every weighting equally likely a priori"
+    : alpha < 6 ? "gently concentrated on the fair centre"
+    : "tightly concentrated on fairness — only mild bias is entertained";
+  drawPriorPreview();
+}
+alphaRange.addEventListener("input", () => setAlpha(alphaFromSlider(+alphaRange.value)));
+
+/* ===== running a sample ==================================================== */
+const statusEl = document.getElementById("status");
+const results = document.getElementById("results");
+
+function updateVertexLabels() {
+  document.querySelectorAll(".tri .v").forEach(el => {
+    const g = +el.dataset.g;
+    el.textContent = el.parentElement.classList.contains("mini")
+      ? GROUPS[g] : `${GROUPS[g]} · ${nVec[g]}`;
+  });
+}
+
+function runSample() {
+  nVec = ["nA", "nB", "nC"].map(id => Math.max(1, Math.round(+document.getElementById(id).value || 1)));
+  const seed = Math.round(+document.getElementById("seed").value || 0);
+  updateVertexLabels();
+  statusEl.textContent = "sampling and updating…";
+  setTimeout(() => {
+    const t0 = performance.now();
+    ranking = sampleRanking(omegaTrue, nVec, seed);
+    model = computeSteps(ranking, nVec, alpha);
+    buildTape(); buildTiles(); buildTraj(); buildEvid();
+    document.getElementById("slider").max = ranking.length;
+    document.getElementById("total").textContent = ranking.length;
+    results.hidden = false;
+    show(0);
+    statusEl.textContent = `${ranking.length} draws · ${Math.round(performance.now() - t0)} ms`;
+  }, 10);
+}
+document.getElementById("sample").addEventListener("click", runSample);
+document.getElementById("reseed").addEventListener("click", () => {
+  document.getElementById("seed").value = Math.floor(Math.random() * 100000);
+  runSample();
+});
+
+/* ===== tape and tiles ====================================================== */
+const tape = document.getElementById("tape");
+function buildTape() {
+  tape.innerHTML = "";
+  const width = Math.max(9, Math.min(24, Math.floor(1100 / ranking.length)));
+  ranking.forEach((g, i) => {
+    const b = document.createElement("button");
+    b.className = "cell"; b.dataset.g = g; b.type = "button";
+    b.style.width = width + "px";
+    b.setAttribute("aria-label", `Position ${i + 1}, group ${GROUPS[g]}`);
+    b.innerHTML = `<span class="rank">${width >= 16 ? i + 1 : ""}</span>
+      <span class="chip">${width >= 12 ? GROUPS[g] : ""}</span>`;
+    b.addEventListener("click", () => { stop(); show(i); });
+    tape.appendChild(b);
+  });
+}
+
+const tiles = document.getElementById("tiles");
+function buildTiles() {
+  tiles.innerHTML = "";
+  GROUPS.forEach((s, g) => {
+    const d = document.createElement("div");
+    d.className = "tile"; d.dataset.g = g;
+    d.innerHTML = `<div class="head"><span class="name">group ${s} &middot; n = ${nVec[g]}</span>
+        <span class="val" id="v${g}">0.000</span></div>
+      <div class="bar"><span class="fill" id="f${g}"></span>
+        <span class="fair" style="left:33.33%"></span>
+        <span class="truth" style="left:${100 * omegaTrue[g]}%"></span></div>
+      <div class="foot"><span id="a${g}">available 0</span>
+        <span class="verdict" id="d${g}">&mdash;</span></div>`;
+    tiles.appendChild(d);
+  });
+}
+
+/* ===== svg helpers ========================================================= */
+const NS = "http://www.w3.org/2000/svg";
+const mk = (tag, attrs) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+};
+const txt = (el, s, attrs) => { const t = mk("text", attrs); t.textContent = s; el.appendChild(t); };
+const MONO = "ui-monospace, Consolas, monospace";
+
+/* ===== trajectory ========================================================== */
+const svgTraj = document.getElementById("traj");
+const TW = 720, TH = 210, TPL = 42, TPR = 12, TPT = 12, TPB = 26;
+let trajRule = null, trajDots = null;
+
+function buildTraj() {
+  svgTraj.innerHTML = "";
+  const N = ranking.length;
+  const key = mode === "savi" ? "csProj" : "hdiProj";
+  const bands = model.meta.map(m => m[key]);
+  const hiV = Math.max(...bands.map(b => Math.max(...b.hi)), ...omegaTrue);
+  const yMax = Math.min(1, Math.max(0.6, Math.ceil(hiV * 10 + 1) / 10));
+  const xAt = i => TPL + (TW - TPL - TPR) * (N === 1 ? 0 : i / (N - 1));
+  const yAt = v => TPT + (TH - TPT - TPB) * (1 - Math.min(v, yMax) / yMax);
+  svgTraj._xAt = xAt; svgTraj._yAt = yAt;
+
+  for (let v = 0; v <= yMax + 1e-9; v += 0.2) {
+    const vv = +v.toFixed(1);
+    svgTraj.appendChild(mk("line", { x1: TPL, x2: TW - TPR, y1: yAt(vv), y2: yAt(vv),
+      stroke: "currentColor", "stroke-width": 0.5, opacity: 0.16 }));
+    txt(svgTraj, vv.toFixed(1), { x: TPL - 8, y: yAt(vv) + 3.5, "text-anchor": "end",
+      "font-size": 10, fill: "currentColor", opacity: 0.55, "font-family": MONO });
+  }
+  omegaTrue.forEach(v => {
+    svgTraj.appendChild(mk("line", { x1: TPL, x2: TW - TPR, y1: yAt(v), y2: yAt(v),
+      stroke: "var(--truth)", "stroke-width": 1.3, "stroke-dasharray": "5 4", opacity: 0.75 }));
+  });
+  const step = N <= 12 ? 1 : Math.ceil(N / 8);
+  for (let d = 1; d <= N; d += step) {
+    txt(svgTraj, d, { x: xAt(d - 1), y: TH - 8, "text-anchor": "middle", "font-size": 10,
+      fill: "currentColor", opacity: 0.55, "font-family": MONO });
+  }
+  /* the region, flattened onto each weight: upper edge forward, lower edge back, closed */
+  [0, 1, 2].forEach(g => {
+    const up = bands.map((b, i) => `${i ? "L" : "M"}${xAt(i).toFixed(1)},${yAt(b.hi[g]).toFixed(1)}`);
+    const dn = [];
+    for (let i = bands.length - 1; i >= 0; i--) dn.push(`L${xAt(i).toFixed(1)},${yAt(bands[i].lo[g]).toFixed(1)}`);
+    svgTraj.appendChild(mk("path", { d: up.join(" ") + " " + dn.join(" ") + " Z",
+      fill: `var(${GCSS[g]})`, "fill-opacity": 0.17, stroke: "none" }));
+  });
+
+  [0, 1, 2].forEach(g => {
+    const d = model.meta.map((m, i) =>
+      `${i ? "L" : "M"}${xAt(i).toFixed(1)},${yAt(m.post[g]).toFixed(1)}`).join(" ");
+    svgTraj.appendChild(mk("path", { d, fill: "none", stroke: `var(${GCSS[g]})`,
+      "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  });
+  trajRule = mk("line", { y1: TPT, y2: TH - TPB, stroke: "currentColor", "stroke-width": 1.2, opacity: 0.7 });
+  svgTraj.appendChild(trajRule);
+  trajDots = [0, 1, 2].map(g => {
+    const c = mk("circle", { r: 4, fill: `var(${GCSS[g]})`, stroke: "var(--panel)", "stroke-width": 1.6 });
+    svgTraj.appendChild(c);
+    return c;
+  });
+
+  const what = mode === "savi" ? "95% confidence sequence" : "95% HDI region";
+  document.getElementById("trajSub").innerHTML =
+    `Posterior mean of each weight after every draw, with the <b>${what}</b> around it &mdash; ` +
+    `the region outlined on the triangle, flattened onto each weight axis. Dashed lines are the ` +
+    `true weights; the vertical rule marks where you are.`;
+  document.getElementById("trajLegend").innerHTML =
+    `<span><i style="background:var(--grpA)"></i>A</span>` +
+    `<span><i style="background:var(--grpB)"></i>B</span>` +
+    `<span><i style="background:var(--grpC)"></i>C</span>` +
+    `<span><i style="background:var(--ink-3);opacity:.35;height:9px;border-radius:2px"></i>` +
+      `${what}, projected</span>` +
+    `<span><i class="dash"></i>true &omega;</span>`;
+}
+
+/* ===== the evidence process ================================================ */
+const svgEvid = document.getElementById("evid");
+const EW = 720, EH = 230, EPL = 52, EPR = 12, EPT = 14, EPB = 28;
+let evidRule = null, evidDot = null;
+
+function buildEvid() {
+  svgEvid.innerHTML = "";
+  const N = ranking.length;
+  const L10 = Math.log(10);
+  const logs = model.meta.map(m => m.logE / L10);
+  const thr = Math.log10(1 / DELTA);
+  const hi = Math.max(thr + 0.4, Math.ceil(Math.max(...logs) + 0.5));
+  const lo = Math.min(-0.5, Math.floor(Math.min(...logs) - 0.3));
+  const xAt = i => EPL + (EW - EPL - EPR) * (N === 1 ? 0 : i / (N - 1));
+  const yAt = v => EPT + (EH - EPT - EPB) * (1 - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo));
+  svgEvid._xAt = xAt; svgEvid._yAt = yAt; svgEvid._logs = logs;
+
+  if (mode === "savi") {
+    /* everything above the Ville threshold is a rejection */
+    svgEvid.appendChild(mk("rect", { x: EPL, y: EPT, width: EW - EPL - EPR,
+      height: Math.max(0, yAt(thr) - EPT), fill: "var(--alarm)", opacity: 0.07 }));
+  } else {
+    /* Kass-Raftery bands, alternating so the strength of evidence reads off the height */
+    [[3, 10], [30, 100]].forEach(([a, b]) => {
+      const y1 = yAt(Math.log10(b)), y2 = yAt(Math.log10(a));
+      svgEvid.appendChild(mk("rect", { x: EPL, y: y1, width: EW - EPL - EPR,
+        height: Math.max(0, y2 - y1), fill: "var(--evid)", opacity: 0.06 }));
+    });
+  }
+
+  for (let p = Math.ceil(lo); p <= hi; p++) {
+    svgEvid.appendChild(mk("line", { x1: EPL, x2: EW - EPR, y1: yAt(p), y2: yAt(p),
+      stroke: "currentColor", "stroke-width": 0.5, opacity: p === 0 ? 0.45 : 0.14 }));
+    txt(svgEvid, p === 0 ? "1" : (p > 0 ? "10^" + p : "10⁻" + (-p)),
+      { x: EPL - 8, y: yAt(p) + 3.5, "text-anchor": "end", "font-size": 10,
+        fill: "currentColor", opacity: p === 0 ? 0.75 : 0.5, "font-family": MONO });
+  }
+
+  if (mode === "savi") {
+    svgEvid.appendChild(mk("line", { x1: EPL, x2: EW - EPR, y1: yAt(thr), y2: yAt(thr),
+      stroke: "var(--alarm)", "stroke-width": 1.4, "stroke-dasharray": "6 4" }));
+    txt(svgEvid, "reject · E = 20", { x: EW - EPR - 4, y: yAt(thr) - 5, "text-anchor": "end",
+      "font-size": 10, fill: "var(--alarm)", "font-family": MONO });
+  } else {
+    [[3, "substantial"], [10, "strong"], [30, "very strong"], [100, "decisive"]].forEach(([v, lbl]) => {
+      const y = yAt(Math.log10(v));
+      if (y < EPT || y > EH - EPB) return;
+      svgEvid.appendChild(mk("line", { x1: EPL, x2: EW - EPR, y1: y, y2: y,
+        stroke: "var(--evid)", "stroke-width": 1, "stroke-dasharray": "4 4", opacity: 0.6 }));
+      txt(svgEvid, `BF ${v} · ${lbl}`, { x: EW - EPR - 4, y: y - 4, "text-anchor": "end",
+        "font-size": 9.5, fill: "var(--evid)", opacity: 0.85, "font-family": MONO });
+    });
+  }
+
+  const step = N <= 12 ? 1 : Math.ceil(N / 8);
+  for (let d = 1; d <= N; d += step) {
+    txt(svgEvid, d, { x: xAt(d - 1), y: EH - 8, "text-anchor": "middle", "font-size": 10,
+      fill: "currentColor", opacity: 0.55, "font-family": MONO });
+  }
+  const path = logs.map((v, i) => `${i ? "L" : "M"}${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(" ");
+  svgEvid.appendChild(mk("path", { d: path, fill: "none", stroke: "var(--evid)",
+    "stroke-width": 2.2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+
+  /* in SAVI mode the first crossing is where an auditor would stop; in Bayesian mode there is
+     no such moment, because the prefix was supposed to be fixed before looking */
+  const cross = logs.findIndex(v => v >= thr);
+  if (mode === "savi" && cross >= 0) {
+    svgEvid.appendChild(mk("line", { x1: xAt(cross), x2: xAt(cross), y1: EPT, y2: EH - EPB,
+      stroke: "var(--alarm)", "stroke-width": 1.2, opacity: 0.8 }));
+    txt(svgEvid, `crossed at draw ${cross + 1}`, { x: xAt(cross) + 5, y: EPT + 12,
+      "font-size": 10, fill: "var(--alarm)", "font-family": MONO });
+  }
+  evidRule = mk("line", { y1: EPT, y2: EH - EPB, stroke: "currentColor", "stroke-width": 1.2, opacity: 0.7 });
+  svgEvid.appendChild(evidRule);
+  evidDot = mk("circle", { r: 4.5, fill: "var(--evid)", stroke: "var(--panel)", "stroke-width": 1.8 });
+  svgEvid.appendChild(evidDot);
+
+  document.getElementById("evidHead").textContent = mode === "savi"
+    ? "The fairness test — evidence as a martingale"
+    : "The fairness test — Bayes factor for bias against fairness";
+  document.getElementById("evidSub").innerHTML = mode === "savi"
+    ? `The same integral that draws the confidence sequence gives the e-process
+       <b>E<sub>t</sub> = m<sub>t</sub> / L<sub>f,t</sub></b>: the marginal likelihood of the
+       Dirichlet alternative over the likelihood under fairness. Under a fair ranking it is a
+       nonnegative martingale started at 1, so by Ville's inequality it exceeds 20 at
+       <em>some</em> point with probability at most 5% — which is what lets you watch it after
+       every position and stop the moment it crosses.`
+    : `<b>BF<sub>10</sub> = m<sub>t</sub> / L<sub>f,t</sub></b> — the very same number as the
+       e-process, read differently. Here the prefix length is supposed to be fixed before
+       looking, and the value is graded on the Kass–Raftery scale rather than compared to a
+       single threshold. There is no licence to stop at the first favourable draw: scrub the
+       slider and you are already peeking.`;
+  document.getElementById("evidLegend").innerHTML = mode === "savi"
+    ? `<span><i style="background:var(--accent)"></i>evidence E<sub>t</sub></span>
+       <span><i class="alarm"></i>reject threshold 1/&delta; = 20</span>
+       <span><i style="background:var(--ink-3)"></i>E = 1 (no evidence either way)</span>`
+    : `<span><i style="background:var(--accent)"></i>BF<sub>10</sub></span>
+       <span><i style="background:var(--accent);opacity:.35"></i>Kass–Raftery bands</span>
+       <span><i style="background:var(--ink-3)"></i>BF = 1 (no evidence either way)</span>`;
+}
+
+function fmtE(logE) {
+  const e = Math.exp(logE);
+  if (e >= 1e6 || (e < 1e-3 && e > 0)) return (logE / Math.log(10)).toFixed(1).replace("-", "−") + " (log₁₀)";
+  return e >= 100 ? e.toFixed(0) : e >= 1 ? e.toFixed(2) : e.toFixed(3);
+}
+
+function updateEvidReadout() {
+  const logs = model.meta.map(m => m.logE);
+  const el = document.getElementById("evidOut");
+
+  if (mode === "savi") {
+    const runMax = Math.max(...logs.slice(0, idx + 1));
+    const thr = Math.log(1 / DELTA);
+    const crossed = logs.slice(0, idx + 1).some(v => v >= thr);
+    const firstCross = logs.findIndex(v => v >= thr);
+    const p = Math.min(1, Math.exp(-runMax));
+    el.classList.toggle("reject", crossed);
+    el.innerHTML =
+      `<span>E<sub>t</sub> now <b>${fmtE(logs[idx])}</b></span>` +
+      `<span>max so far <b>${fmtE(runMax)}</b></span>` +
+      `<span>anytime-valid p <b>${p < 1e-4 ? p.toExponential(1) : p.toFixed(4)}</b></span>` +
+      `<span class="flag ${crossed ? "yes" : "no"}">` +
+        (crossed ? `fairness rejected at draw ${firstCross + 1}` : "fairness not rejected") + `</span>`;
+  } else {
+    const bf = Math.exp(logs[idx]);
+    const post = bf / (1 + bf);                 /* posterior P(bias) at equal prior odds */
+    el.classList.remove("reject");
+    el.innerHTML =
+      `<span>BF<sub>10</sub> at k = ${idx + 1} <b>${fmtE(logs[idx])}</b></span>` +
+      `<span>evidence <b>${krWord(bf)}</b></span>` +
+      `<span>P(bias | data), equal prior odds <b>${post.toFixed(3)}</b></span>` +
+      `<span class="flag no">no guarantee under peeking</span>`;
+  }
+}
+
+/* ===== procedure toggle ==================================================== */
+function setMode(m) {
+  mode = m;
+  document.getElementById("modeSavi").setAttribute("aria-pressed", String(m === "savi"));
+  document.getElementById("modeBayes").setAttribute("aria-pressed", String(m === "bayes"));
+  document.getElementById("modeNote").textContent = m === "savi"
+    ? "e-process + confidence sequence. Valid at every prefix at once, so you may stop whenever "
+      + "you like — and correspondingly conservative."
+    : "Bayes factor + highest-density region at the prefix you are looking at. Tighter, but the "
+      + "prefix must be chosen before seeing the data.";
+  if (ranking) { buildTraj(); buildEvid(); show(idx); }
+}
+document.getElementById("modeSavi").addEventListener("click", () => setMode("savi"));
+document.getElementById("modeBayes").addEventListener("click", () => setMode("bayes"));
+
+/* ===== predictive bars ===================================================== */
+function drawPredictive(pred, fair) {
+  const s = document.getElementById("svPred");
+  s.innerHTML = "";
+  const W = 320, H = 277, PL = 34, PR = 8, PT = 14, PB = 34;
+  const yAt = v => PT + (H - PT - PB) * (1 - v);
+  [0, 0.25, 0.5, 0.75, 1].forEach(v => {
+    s.appendChild(mk("line", { x1: PL, x2: W - PR, y1: yAt(v), y2: yAt(v), stroke: "currentColor",
+      "stroke-width": 0.6, opacity: 0.18, "stroke-dasharray": v ? "3 3" : "" }));
+    txt(s, v.toFixed(2), { x: PL - 6, y: yAt(v) + 3.5, "text-anchor": "end", "font-size": 9.5,
+      fill: "currentColor", opacity: 0.55, "font-family": MONO });
+  });
+  const band = (W - PR - PL) / 3;
+  GROUPS.forEach((g, i) => {
+    const cx = PL + band * (i + 0.5), bw = band * 0.30;
+    s.appendChild(mk("rect", { x: cx - bw - 2, y: yAt(fair[i]), width: bw,
+      height: yAt(0) - yAt(fair[i]), fill: "currentColor", opacity: 0.16 }));
+    s.appendChild(mk("rect", { x: cx + 2, y: yAt(pred[i]), width: bw,
+      height: yAt(0) - yAt(pred[i]), fill: `var(${GCSS[i]})` }));
+    txt(s, fair[i].toFixed(2), { x: cx - bw / 2 - 2, y: yAt(fair[i]) - 4, "text-anchor": "middle",
+      "font-size": 9.5, fill: "currentColor", opacity: 0.6, "font-family": MONO });
+    txt(s, pred[i].toFixed(2), { x: cx + bw / 2 + 2, y: yAt(pred[i]) - 4, "text-anchor": "middle",
+      "font-size": 10, "font-weight": "bold", fill: `var(${GCSS[i]})`, "font-family": MONO });
+    txt(s, g, { x: cx, y: H - PB + 16, "text-anchor": "middle", "font-size": 11,
+      "font-weight": "bold", fill: `var(${GCSS[i]})`, "font-family": MONO });
+  });
+  s.appendChild(mk("line", { x1: PL, x2: W - PR, y1: yAt(0), y2: yAt(0),
+    stroke: "currentColor", "stroke-width": 1, opacity: 0.35 }));
+  txt(s, "faint = fair (r/Σr)   solid = predicted", { x: PL, y: H - 4, "font-size": 9.5,
+    fill: "currentColor", opacity: 0.6, "font-family": MONO });
+}
+
+/* ===== showing a draw ====================================================== */
+function fieldFrom(logField, n) {
+  const out = new Float64Array(n);
+  let mx = -Infinity;
+  for (let i = 0; i < n; i++) if (logField[i] > mx) mx = logField[i];
+  for (let i = 0; i < n; i++) out[i] = Math.exp(logField[i] - mx);
+  return out;
+}
+
+function show(i) {
+  idx = Math.max(0, Math.min(ranking.length - 1, i));
+  const m = model.meta[idx], N = LAT.n;
+  const cumPrev = idx === 0 ? new Float64Array(N) : model.snaps[idx - 1];
+  const cumNow = model.snaps[idx];
+
+  const logPrior = new Float64Array(N), logPost = new Float64Array(N), lik = new Float64Array(N);
+  const csField = new Float64Array(N);
+  for (let k = 0; k < N; k++) {
+    logPrior[k] = model.logPrior0[k] + cumPrev[k];
+    logPost[k] = model.logPrior0[k] + cumNow[k];
+    lik[k] = cumNow[k] - cumPrev[k];
+    csField[k] = Math.exp(cumNow[k] - m.cs.max);
+  }
+  const postField = fieldFrom(logPost, N);
+
+  /* SAVI outlines a superlevel set of the *likelihood* at delta * m_t, valid at every prefix
+     at once; the Bayesian region is a superlevel set of the *posterior* holding 95% of its
+     mass at this prefix alone. Under a non-uniform prior these are different surfaces, not
+     just different levels of one. */
+  const region = mode === "savi"
+    ? { field: csField, level: m.cs.level }
+    : { field: postField, level: hdiLevel(postField, 1 - DELTA) };
+
+  paintField(document.getElementById("cvPrior"), LAT, fieldFrom(logPrior, N), BANDS_BELIEF, null, null);
+  drawMarkers(document.getElementById("cvPrior"), { truth: omegaTrue });
+
+  paintField(document.getElementById("cvLik"), LAT, fieldFrom(lik, N), BANDS_LIK, 0.65, null);
+  drawMarkers(document.getElementById("cvLik"), { truth: omegaTrue });
+
+  paintField(document.getElementById("cvPost"), LAT, postField, BANDS_BELIEF, null, region);
+  drawMarkers(document.getElementById("cvPost"), { truth: omegaTrue, mean: m.post });
+
+  drawPredictive(m.pred, m.fair);
+
+  const g = m.group;
+  document.getElementById("fhDraw").textContent =
+    `Draw ${String(m.draw).padStart(2, "0")} of ${ranking.length}`;
+  const drew = document.getElementById("fhDrew");
+  drew.textContent = `drew group ${GROUPS[g]}`;
+  drew.style.color = `var(${GCSS[g]})`;
+  document.getElementById("fhAvail").textContent = `available ${m.avail.join(", ")}`;
+  document.getElementById("capPrior").textContent =
+    idx === 0 ? `Dirichlet(${alpha.toFixed(2)}) — nothing seen yet`
+              : `belief after ${idx} draw${idx > 1 ? "s" : ""}`;
+  document.getElementById("capLik").textContent =
+    `chance this draw goes to ${GROUPS[g]}: ω${GROUPS[g]}·r${GROUPS[g]} / (ω·r)`;
+  document.getElementById("capPost").textContent =
+    `mean ω = (${m.post.map(v => v.toFixed(3)).join(", ")})`;
+  document.getElementById("capPred").textContent = `P(next draw), before draw ${m.draw}`;
+
+  let covered = 0;
+  for (let k = 0; k < N; k++) if (region.field[k] > region.level) covered++;
+  document.getElementById("keyCS").innerHTML =
+    `<i class="gl">&mdash;</i> ${mode === "savi" ? "95% confidence sequence" : "95% HDI"} — ` +
+    `${(100 * covered / N).toFixed(0)}% of the simplex, ` +
+    `truth ${insideRegion(region, omegaTrue) ? "inside" : "OUTSIDE"}`;
+
+  Array.from(tape.children).forEach((c, j) => {
+    c.classList.toggle("seen", j <= idx);
+    c.classList.toggle("now", j === idx);
+  });
+
+  [0, 1, 2].forEach(gg => {
+    const v = m.post[gg];
+    document.getElementById("v" + gg).textContent = v.toFixed(3);
+    document.getElementById("f" + gg).style.width = (100 * Math.min(v, 1)) + "%";
+    document.getElementById("a" + gg).textContent = "available " + m.avail[gg];
+    const el = document.getElementById("d" + gg);
+    const err = v - omegaTrue[gg];
+    el.textContent = (err >= 0 ? "+" : "−") + Math.abs(err).toFixed(3) + " vs truth";
+    el.className = "verdict " + (Math.abs(err) < 0.05 ? "flat" : err > 0 ? "up" : "down");
+    trajDots[gg].setAttribute("cx", svgTraj._xAt(idx));
+    trajDots[gg].setAttribute("cy", svgTraj._yAt(v));
+  });
+  trajRule.setAttribute("x1", svgTraj._xAt(idx));
+  trajRule.setAttribute("x2", svgTraj._xAt(idx));
+
+  evidRule.setAttribute("x1", svgEvid._xAt(idx));
+  evidRule.setAttribute("x2", svgEvid._xAt(idx));
+  evidDot.setAttribute("cx", svgEvid._xAt(idx));
+  evidDot.setAttribute("cy", svgEvid._yAt(svgEvid._logs[idx]));
+  updateEvidReadout();
+
+  document.getElementById("slider").value = idx + 1;
+  document.getElementById("counter").textContent = idx + 1;
+  document.getElementById("prev").disabled = idx === 0;
+  document.getElementById("first").disabled = idx === 0;
+  document.getElementById("next").disabled = idx === ranking.length - 1;
+}
+
+/* is the true omega inside the outlined region? the nearest lattice point decides */
+function insideRegion(region, truth) {
+  let best = Infinity, bi = 0;
+  for (let i = 0; i < LAT.n; i++) {
+    const d = (LAT.om[0][i] - truth[0]) ** 2 + (LAT.om[1][i] - truth[1]) ** 2
+            + (LAT.om[2][i] - truth[2]) ** 2;
+    if (d < best) { best = d; bi = i; }
+  }
+  return region.field[bi] > region.level;
+}
+
+/* ===== playback ============================================================ */
+const playBtn = document.getElementById("play");
+function stop() {
+  if (timer) { clearInterval(timer); timer = null; }
+  playBtn.innerHTML = "&#9654; Play";
+}
+function play() {
+  if (timer) { stop(); return; }
+  if (idx === ranking.length - 1) show(0);
+  playBtn.innerHTML = "&#9614;&#9614; Pause";
+  timer = setInterval(() => {
+    if (idx >= ranking.length - 1) { stop(); return; }
+    show(idx + 1);
+  }, 700);
+}
+document.getElementById("next").addEventListener("click", () => { stop(); show(idx + 1); });
+document.getElementById("prev").addEventListener("click", () => { stop(); show(idx - 1); });
+document.getElementById("first").addEventListener("click", () => { stop(); show(0); });
+playBtn.addEventListener("click", play);
+document.getElementById("slider").addEventListener("input", e => { stop(); show(+e.target.value - 1); });
+document.addEventListener("keydown", e => {
+  if (!ranking || e.target.tagName === "INPUT" || e.target === picker) return;
+  if (e.key === "ArrowRight") { stop(); show(idx + 1); }
+  else if (e.key === "ArrowLeft") { stop(); show(idx - 1); }
+  else if (e.key === " " && e.target.tagName !== "BUTTON") { e.preventDefault(); play(); }
+});
+
+/* the site is light-only: no theme repaint needed */
+
+alphaRange.value = sliderFromAlpha(2);
+setAlpha(2);
+setMode("savi");
+setOmega([0.2, 0.3, 0.5]);
+runSample();
+</script>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="links">
+      <a href="mailto:cartiervandissel@csh.ac.at">Email</a>
+      <a href="https://scholar.google.com/citations?user=jZ_h_rQAAAAJ">Google Scholar</a>
+      <a href="https://github.com/MauritzNiklas">GitHub</a>
+      <a href="https://networkinequality.com">Network Inequality Lab</a>
+      <a href="https://csh.ac.at/mauritz-cartier-van-dissel/">CSH Profile</a>
+    </div>
+    <div>&copy; 2026 Mauritz Cartier van Dissel</div>
+  </footer>
+
+</body>
+</html>
